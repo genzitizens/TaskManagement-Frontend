@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build:
+      context: .
+      target: development
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      VITE_API_URL: http://host.docker.internal:8002
+      VITE_DEFAULT_PAGE_SIZE: 20
+    command: npm run dev -- --host 0.0.0.0 --port 5173
