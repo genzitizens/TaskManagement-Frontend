@@ -133,6 +133,32 @@ button:disabled {
   background: #f8fafc;
 }
 
+.list-item-button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.list-item-button:hover,
+.list-item-button:focus {
+  text-decoration: none;
+  outline: none;
+}
+
+.list-item-button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 .badge {
   display: inline-block;
   background: #e0f2fe;
@@ -141,4 +167,71 @@ button:disabled {
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.25);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.modal h4 {
+  margin-bottom: 0.5rem;
+}
+
+.modal-task-form {
+  margin-bottom: 1.5rem;
+}
+
+.task-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.button-secondary {
+  background: #1e293b;
+}
+
+.button-danger {
+  background: #dc2626;
+}
+
+.list-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
 }
