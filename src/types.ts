@@ -47,6 +47,8 @@ export interface TaskCreateInput {
   endAt: string;
 }
 
+export type TaskUpdateInput = TaskCreateInput;
+
 export interface NoteCreateInput {
   projectId?: string;
   taskId?: string;

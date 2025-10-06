@@ -1,5 +1,5 @@
 import { apiRequest, DEFAULT_PAGE_SIZE } from './client';
-import type { Page, TaskCreateInput, TaskRes } from '../types';
+import type { Page, TaskCreateInput, TaskRes, TaskUpdateInput } from '../types';
 
 export interface ListTasksParams {
   projectId?: string;
@@ -25,5 +25,12 @@ export function createTask(payload: TaskCreateInput) {
 export function deleteTask(taskId: string) {
   return apiRequest<void>(`/api/tasks/${taskId}`, {
     method: 'DELETE',
+  });
+}
+
+export function updateTask(taskId: string, payload: TaskUpdateInput) {
+  return apiRequest<TaskRes>(`/api/tasks/${taskId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
   });
 }
