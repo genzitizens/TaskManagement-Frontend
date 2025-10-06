@@ -16,6 +16,7 @@ export function useProjects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
     },
+    onError: (error) => { console.error('Error creating project:', error); }, 
   });
 
   return { ...query, createProject: mutation.mutateAsync, creating: mutation.isPending };
