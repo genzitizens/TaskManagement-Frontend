@@ -1,0 +1,21 @@
+# PROD Docker compose file for Next.js app
+services:
+  task-management-frontend:
+    image: ghcr.io/genzitizens/TaskManagement-Frontend:latest
+    pull_policy: always
+    container_name: code4sg-test
+    restart: unless-stopped
+    networks:
+      - shared_network
+    environment:
+      - NODE_ENV=production
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.nextjs-router.rule=Host(`task-management.exeltan.com`)
+      - traefik.http.routers.nextjs-router.entrypoints=websecure
+      - traefik.http.routers.nextjs-router.tls=true
+      - traefik.http.routers.nextjs-router.tls.certresolver=myresolver
+      - traefik.http.services.nextjs-router.loadbalancer.server.port=4001
+networks:
+  shared_network:
+    external: true
