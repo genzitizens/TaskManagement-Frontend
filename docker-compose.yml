@@ -12,3 +12,8 @@ services:
       VITE_API_URL: http://host.docker.internal:8002
       VITE_DEFAULT_PAGE_SIZE: 20
     command: npm run dev -- --host 0.0.0.0 --port 5173
+    networks:
+      - shared_network
+networks:
+  shared_network:
+      external: true

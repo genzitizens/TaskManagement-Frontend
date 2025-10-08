@@ -4,7 +4,7 @@ export default function Layout() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>Codex Task Management</h1>
+        <h1>ICT 302 Task Management</h1>
         <p className="app-tagline">Projects, tasks, and notes at a glance.</p>
       </header>
       <nav className="app-nav">
@@ -14,7 +14,7 @@ export default function Layout() {
         <NavLink to="/tasks">Tasks</NavLink>
         <NavLink to="/notes">Notes</NavLink>
       </nav>
-      <main className="app-main">
+      <main className="app-main"> 
         <Outlet />
       </main>
       <footer className="app-footer">
