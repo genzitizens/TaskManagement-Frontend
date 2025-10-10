@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../api/client';
 import { createProject, listProjects } from '../api/projects';
-import type { ProjectCreateInput, ProjectRes } from '../types';
+import type { ProjectCreateInput, ProjectRes, ProjectUpdateInput } from '../types';
 import { queryClient } from '../queryClient';
 
 const PROJECTS_QUERY_KEY = ['projects'];
@@ -21,7 +21,7 @@ export function useProjects() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, input }: { id: string; input: ProjectCreateInput }) =>
+    mutationFn: ({ id, input }: { id: string; input: ProjectUpdateInput }) =>
       apiRequest<ProjectRes>(`/api/projects/${id}`, {
         method: 'PUT',
         body: JSON.stringify(input),
