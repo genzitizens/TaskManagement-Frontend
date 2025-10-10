@@ -2,6 +2,7 @@ export interface ProjectRes {
   id: string;
   name: string;
   description?: string;
+  startAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +38,11 @@ export interface Page<T> {
 export interface ProjectCreateInput {
   name: string;
   description?: string;
+  startAt: string;
+}
+
+export interface ProjectUpdateInput extends ProjectCreateInput {
+  updatedAt?: string;
 }
 
 export interface TaskCreateInput {
