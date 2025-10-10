@@ -17,6 +17,8 @@ export default function MenuPage() {
     creating,
     updateProject,
     updating,
+    deleteProject,
+    deleting,
   } = useProjects();
   const projects = data?.content ?? [];
 
@@ -50,6 +52,11 @@ export default function MenuPage() {
     } else {
       await createProject(input);
     }
+  };
+
+  const handleDelete = async (project: ProjectRes) => {
+    await deleteProject(project.id);
+    closeModal();
   };
 
   const handleShowProject = (project: ProjectRes) => {
@@ -106,6 +113,8 @@ export default function MenuPage() {
         project={activeProject}
         submitting={isSubmitting}
         onSubmit={handleSubmit}
+        onDelete={activeProject ? handleDelete : undefined}
+        deleting={deleting}
         onClose={closeModal}
       />
     </div>

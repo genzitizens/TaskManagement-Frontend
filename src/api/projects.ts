@@ -20,3 +20,9 @@ export function createProject(payload: ProjectCreateInput) {
     body: JSON.stringify(payload),
   });
 }
+
+export function deleteProject(projectId: string) {
+  return apiRequest<void>(`/api/projects/${projectId}`, {
+    method: 'DELETE',
+  });
+}

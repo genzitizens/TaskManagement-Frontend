@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../api/client';
-import { createProject, listProjects } from '../api/projects';
+import { createProject, deleteProject, listProjects } from '../api/projects';
 import type { ProjectCreateInput, ProjectRes, ProjectUpdateInput } from '../types';
 import { queryClient } from '../queryClient';
 
@@ -34,11 +34,23 @@ export function useProjects() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (projectId: string) => deleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROJECTS_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Error deleting project:', error);
+    },
+  });
+
   return {
     ...query,
     createProject: mutation.mutateAsync,
     creating: mutation.isPending,
     updateProject: updateMutation.mutateAsync,
     updating: updateMutation.isPending,
+    deleteProject: deleteMutation.mutateAsync,
+    deleting: deleteMutation.isPending,
   };
 }

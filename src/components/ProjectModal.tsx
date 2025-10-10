@@ -31,7 +31,9 @@ export interface ProjectModalProps {
   mode: ProjectModalMode;
   project: ProjectRes | null;
   submitting: boolean;
+  deleting?: boolean;
   onSubmit: (input: ProjectCreateInput) => Promise<void>;
+  onDelete?: (project: ProjectRes) => Promise<void>;
   onClose: () => void;
 }
 
@@ -40,7 +42,9 @@ export default function ProjectModal({
   mode,
   project,
   submitting,
+  deleting = false,
   onSubmit,
+  onDelete,
   onClose,
 }: ProjectModalProps) {
   const [form, setForm] = useState<FormState>(() => createInitialState());
@@ -110,12 +114,32 @@ export default function ProjectModal({
     }
   };
 
+  const handleDelete = async () => {
+    if (!project || !onDelete) {
+      return;
+    }
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this project? This action cannot be undone.'
+    );
+    if (!confirmed) {
+      return;
+    }
+    setFormError(null);
+    try {
+      await onDelete(project);
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Failed to delete project');
+    }
+  };
+
   if (!isOpen) {
     return null;
   }
 
+  const isBusy = submitting || deleting;
+
   const handleBackdropClick = () => {
-    if (submitting) {
+    if (isBusy) {
       return;
     }
     onClose();
@@ -137,7 +161,7 @@ export default function ProjectModal({
             className="modal-close"
             onClick={onClose}
             aria-label="Close project form"
-            disabled={submitting}
+            disabled={isBusy}
           >
             ×
           </button>
@@ -197,9 +221,21 @@ export default function ProjectModal({
             />
           </div>
           {formError ? <p className="error-message">{formError}</p> : null}
-          <button type="submit" disabled={submitting}>
-            {submitLabel}
-          </button>
+          <div className="modal-actions">
+            {mode === 'edit' && onDelete ? (
+              <button
+                type="button"
+                className="button-danger"
+                onClick={() => void handleDelete()}
+                disabled={isBusy}
+              >
+                {deleting ? 'Deleting…' : 'Delete project'}
+              </button>
+            ) : null}
+            <button type="submit" disabled={isBusy}>
+              {submitLabel}
+            </button>
+          </div>
         </form>
       </div>
     </div>
