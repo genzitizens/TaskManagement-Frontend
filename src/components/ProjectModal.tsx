@@ -96,11 +96,14 @@ export default function ProjectModal({
       return;
     }
 
+    const payload: ProjectCreateInput = {
+      ...result.data,
+      startAt: startDate.toISOString(),
+      title: result.data.name,
+    };
+
     try {
-      await onSubmit({
-        ...result.data,
-        startAt: startDate.toISOString(),
-      });
+      await onSubmit(payload);
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Failed to save project');

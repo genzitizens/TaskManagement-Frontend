@@ -37,12 +37,12 @@ export interface Page<T> {
 
 export interface ProjectCreateInput {
   name: string;
+  /**
+   * Some API flows still expect a `title` field. Mirror the project name to preserve compatibility.
+   */
+  title?: string;
   description?: string;
   startAt: string;
-}
-
-export interface ProjectUpdateInput extends ProjectCreateInput {
-  updatedAt?: string;
 }
 
 export interface ProjectUpdateInput extends ProjectCreateInput {

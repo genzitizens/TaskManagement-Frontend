@@ -40,7 +40,13 @@ export default function MenuPage() {
 
   const handleSubmit = async (input: ProjectCreateInput) => {
     if (activeProject) {
-      await updateProject({ id: activeProject.id, input });
+      await updateProject({
+        id: activeProject.id,
+        input: {
+          ...input,
+          updatedAt: activeProject.updatedAt,
+        },
+      });
     } else {
       await createProject(input);
     }
