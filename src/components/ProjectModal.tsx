@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
-import type { ProjectRes, ProjectUpdateInput } from '../types';
+import type { ProjectCreateInput, ProjectRes } from '../types';
 
 type ProjectModalMode = 'create' | 'edit';
 
@@ -27,7 +27,7 @@ export interface ProjectModalProps {
   mode: ProjectModalMode;
   project: ProjectRes | null;
   submitting: boolean;
-  onSubmit: (input: ProjectUpdateInput) => Promise<void>;
+  onSubmit: (input: ProjectCreateInput) => Promise<void>;
   onClose: () => void;
 }
 
@@ -79,8 +79,7 @@ export default function ProjectModal({
     }
 
     try {
-      const payload: ProjectUpdateInput = { ...result.data };
-      await onSubmit(payload);
+      await onSubmit(result.data);
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Failed to save project');
