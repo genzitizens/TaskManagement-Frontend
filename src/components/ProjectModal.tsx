@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
@@ -7,12 +8,14 @@ type ProjectModalMode = 'create' | 'edit';
 type FormState = {
   name: string;
   description: string;
+  startAt: string;
 };
 
-const initialState: FormState = {
+const createInitialState = (): FormState => ({
   name: '',
   description: '',
-};
+  startAt: dayjs().format('YYYY-MM-DD'),
+});
 
 const projectSchema = z.object({
   name: z.string().min(1, 'Name is required').max(160, 'Name must be 160 characters or fewer'),
@@ -20,6 +23,7 @@ const projectSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
+  startAt: z.string().min(1, 'Start date is required'),
 });
 
 export interface ProjectModalProps {
@@ -39,7 +43,7 @@ export default function ProjectModal({
   onSubmit,
   onClose,
 }: ProjectModalProps) {
-  const [form, setForm] = useState<FormState>(initialState);
+  const [form, setForm] = useState<FormState>(() => createInitialState());
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -47,14 +51,21 @@ export default function ProjectModal({
       setForm({
         name: project.name,
         description: project.description ?? '',
+        startAt: (() => {
+          const formatted = dayjs(project.startAt);
+          if (!formatted.isValid()) {
+            return dayjs().format('YYYY-MM-DD');
+          }
+          return formatted.format('YYYY-MM-DD');
+        })(),
       });
     } else if (isOpen && mode === 'create') {
-      setForm(initialState);
+      setForm(createInitialState());
     }
     if (isOpen) {
       setFormError(null);
     }
-  }, [isOpen, mode, project?.id, project?.name, project?.description]);
+  }, [isOpen, mode, project?.id, project?.name, project?.description, project?.startAt]);
 
   const submitLabel = useMemo(() => {
     if (submitting) {
@@ -70,6 +81,7 @@ export default function ProjectModal({
     const result = projectSchema.safeParse({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
+      startAt: form.startAt,
     });
 
     if (!result.success) {
@@ -78,8 +90,17 @@ export default function ProjectModal({
       return;
     }
 
+    const startDate = dayjs(result.data.startAt);
+    if (!startDate.isValid()) {
+      setFormError('Provide a valid start date');
+      return;
+    }
+
     try {
-      await onSubmit(result.data);
+      await onSubmit({
+        ...result.data,
+        startAt: startDate.toISOString(),
+      });
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Failed to save project');
@@ -134,6 +155,23 @@ export default function ProjectModal({
               placeholder="Summer roadmap"
               required
               maxLength={160}
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="project-start-modal">Start date</label>
+            <input
+              id="project-start-modal"
+              name="startAt"
+              type="date"
+              value={form.startAt}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  startAt: event.target.value,
+                }))
+              }
+              required
               disabled={submitting}
             />
           </div>
