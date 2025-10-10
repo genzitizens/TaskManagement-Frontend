@@ -281,6 +281,22 @@ button:disabled {
   color: #0f172a;
 }
 
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.modal-actions button {
+  align-self: center;
+}
+
+.modal-actions button:last-child {
+  margin-left: auto;
+}
+
 .modal h4 {
   margin-bottom: 0.5rem;
 }
