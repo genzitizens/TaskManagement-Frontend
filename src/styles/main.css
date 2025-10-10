@@ -198,6 +198,80 @@ button:disabled {
   gap: 1rem;
 }
 
+.menu-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.menu-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.menu-header h2 {
+  margin: 0 0 0.25rem;
+}
+
+.menu-subtitle {
+  margin: 0;
+  color: #475569;
+}
+
+.menu-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.menu-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.menu-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-card-header h3 {
+  margin: 0;
+}
+
+.menu-card-meta {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.menu-card-description {
+  margin: 0;
+  color: #1e293b;
+}
+
+.menu-card-description--empty {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.menu-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.menu-card-actions .button-secondary {
+  align-self: center;
+}
+
 .modal-close {
   border: none;
   background: transparent;
