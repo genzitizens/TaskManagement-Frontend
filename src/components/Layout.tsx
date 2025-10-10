@@ -9,7 +9,7 @@ export default function Layout() {
       </header>
       <nav className="app-nav">
         <NavLink to="/" end>
-          Projects
+          Menu
         </NavLink>
         <NavLink to="/tasks">Tasks</NavLink>
         <NavLink to="/notes">Notes</NavLink>

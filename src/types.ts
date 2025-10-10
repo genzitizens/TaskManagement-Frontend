@@ -39,6 +39,10 @@ export interface ProjectCreateInput {
   description?: string;
 }
 
+export interface ProjectUpdateInput extends ProjectCreateInput {
+  updatedAt?: string;
+}
+
 export interface TaskCreateInput {
   projectId: string;
   title: string;
