@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useProjects } from '../hooks/useProjects';
 import ProjectModal from '../components/ProjectModal';
-import type { ProjectRes, ProjectUpdateInput } from '../types';
+import type { ProjectCreateInput, ProjectRes } from '../types';
 
 dayjs.extend(relativeTime);
 
@@ -38,15 +38,9 @@ export default function MenuPage() {
     setActiveProject(null);
   };
 
-  const handleSubmit = async (input: ProjectUpdateInput) => {
+  const handleSubmit = async (input: ProjectCreateInput) => {
     if (activeProject) {
-      await updateProject({
-        id: activeProject.id,
-        input: {
-          ...input,
-          updatedAt: activeProject.updatedAt,
-        },
-      });
+      await updateProject({ id: activeProject.id, input });
     } else {
       await createProject(input);
     }
