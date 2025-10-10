@@ -1,5 +1,4 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import dayjs from 'dayjs';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
@@ -8,13 +7,11 @@ type ProjectModalMode = 'create' | 'edit';
 type FormState = {
   name: string;
   description: string;
-  startAt: string;
 };
 
 const createInitialState = (): FormState => ({
   name: '',
   description: '',
-  startAt: dayjs().format('YYYY-MM-DD'),
 });
 
 const projectSchema = z.object({
@@ -23,7 +20,6 @@ const projectSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
-  startAt: z.string().min(1, 'Start date is required'),
 });
 
 export interface ProjectModalProps {
@@ -55,13 +51,6 @@ export default function ProjectModal({
       setForm({
         name: project.name,
         description: project.description ?? '',
-        startAt: (() => {
-          const formatted = dayjs(project.startAt);
-          if (!formatted.isValid()) {
-            return dayjs().format('YYYY-MM-DD');
-          }
-          return formatted.format('YYYY-MM-DD');
-        })(),
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());
@@ -69,7 +58,7 @@ export default function ProjectModal({
     if (isOpen) {
       setFormError(null);
     }
-  }, [isOpen, mode, project?.id, project?.name, project?.description, project?.startAt]);
+  }, [isOpen, mode, project?.id, project?.name, project?.description]);
 
   const submitLabel = useMemo(() => {
     if (submitting) {
@@ -85,7 +74,6 @@ export default function ProjectModal({
     const result = projectSchema.safeParse({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
-      startAt: form.startAt,
     });
 
     if (!result.success) {
@@ -94,15 +82,8 @@ export default function ProjectModal({
       return;
     }
 
-    const startDate = dayjs(result.data.startAt);
-    if (!startDate.isValid()) {
-      setFormError('Provide a valid start date');
-      return;
-    }
-
     const payload: ProjectCreateInput = {
       ...result.data,
-      startAt: startDate.toISOString(),
       title: result.data.name,
     };
 
@@ -182,23 +163,6 @@ export default function ProjectModal({
               placeholder="Summer roadmap"
               required
               maxLength={160}
-              disabled={submitting}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="project-start-modal">Start date</label>
-            <input
-              id="project-start-modal"
-              name="startAt"
-              type="date"
-              value={form.startAt}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  startAt: event.target.value,
-                }))
-              }
-              required
               disabled={submitting}
             />
           </div>
