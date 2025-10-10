@@ -2,7 +2,6 @@ export interface ProjectRes {
   id: string;
   name: string;
   description?: string;
-  startAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,7 +41,6 @@ export interface ProjectCreateInput {
    */
   title?: string;
   description?: string;
-  startAt: string;
 }
 
 export interface ProjectUpdateInput extends ProjectCreateInput {
