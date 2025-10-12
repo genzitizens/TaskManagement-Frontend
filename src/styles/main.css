@@ -15,10 +15,16 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto auto 1fr auto;
+  box-sizing: border-box;
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
   gap: 1.5rem;
+}
+
+.app-shell--wide {
+  width: calc(100% - 20px);
+  max-width: none;
 }
 
 .app-header h1 {

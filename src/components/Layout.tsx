@@ -1,8 +1,11 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 
 export default function Layout() {
+  const { pathname } = useLocation();
+  const isProjectDetailPage = pathname.startsWith('/projects/');
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isProjectDetailPage ? ' app-shell--wide' : ''}`}>
       <header className="app-header">
         <h1>ICT 302 Task Management</h1>
         <p className="app-tagline">Projects, tasks, and notes at a glance.</p>
