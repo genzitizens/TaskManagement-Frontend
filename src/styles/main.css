@@ -384,8 +384,9 @@ button:disabled {
 
 .project-grid__table-wrapper {
   overflow-x: auto;
-  width: 100%;
+  width: min(100%, 72rem);
   max-width: 100%;
+  margin-inline: auto;
 }
 
 .project-grid__table {
