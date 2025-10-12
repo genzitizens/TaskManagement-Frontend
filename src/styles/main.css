@@ -384,14 +384,13 @@ button:disabled {
 
 .project-grid__table-wrapper {
   overflow-x: auto;
-  width: min(100%, 72rem);
+  width: 100%;
   max-width: 100%;
-  margin-inline: auto;
 }
 
 .project-grid__table {
   border-collapse: collapse;
-  min-width: max(960px, 100%);
+  min-width: max(56rem, 100%);
 }
 
 .project-grid__header,
