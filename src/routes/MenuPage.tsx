@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useProjects } from '../hooks/useProjects';
@@ -8,6 +9,7 @@ import type { ProjectCreateInput, ProjectRes } from '../types';
 dayjs.extend(relativeTime);
 
 export default function MenuPage() {
+  const navigate = useNavigate();
   const {
     data,
     isLoading,
@@ -60,7 +62,7 @@ export default function MenuPage() {
   };
 
   const handleShowProject = (project: ProjectRes) => {
-    console.debug('Show project requested', project);
+    navigate(`/projects/${project.id}`);
   };
 
   const isSubmitting = activeProject ? updating : creating;
@@ -100,7 +102,7 @@ export default function MenuPage() {
                 Edit
               </button>
               <button type="button" className="button-secondary" onClick={() => handleShowProject(project)}>
-                Show
+                View
               </button>
             </div>
           </article>
