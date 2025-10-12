@@ -1,8 +1,9 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import { z } from 'zod';
 import { useProjects } from '../hooks/useProjects';
 import { useTasks } from '../hooks/useTasks';
+import { useSearchParams } from 'react-router-dom';
 
 const schema = z.object({
   projectId: z.string().uuid({ message: 'Select a project' }),
@@ -32,6 +33,21 @@ export default function TasksPage() {
   const { data: projectData } = useProjects();
   const [form, setForm] = useState<FormState>(initialState);
   const [formError, setFormError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const projectParam = searchParams.get('projectId');
+    if (!projectParam) {
+      return;
+    }
+
+    setForm((prev) => {
+      if (prev.projectId === projectParam) {
+        return prev;
+      }
+      return { ...prev, projectId: projectParam };
+    });
+  }, [searchParams]);
 
   const tasksHook = useTasks(form.projectId || undefined);
   const { data, isLoading, isError, error, createTask, creating, deleteTask, deleting } = tasksHook;

@@ -26,3 +26,7 @@ export function deleteProject(projectId: string) {
     method: 'DELETE',
   });
 }
+
+export function getProject(projectId: string) {
+  return apiRequest<ProjectRes>(`/api/projects/${projectId}`);
+}
