@@ -1,10 +1,26 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
 
 const MINIMUM_DAY_COLUMNS = 100;
+const MOBILE_COLUMN_COUNT = 20;
+const TABLET_COLUMN_COUNT = 24;
+const DESKTOP_COLUMN_COUNT = 30;
+
+const DESKTOP_BREAKPOINT = 1440;
+const TABLET_BREAKPOINT = 1024;
+
+function getVisibleColumnCount(width: number) {
+  if (width >= DESKTOP_BREAKPOINT) {
+    return DESKTOP_COLUMN_COUNT;
+  }
+  if (width >= TABLET_BREAKPOINT) {
+    return TABLET_COLUMN_COUNT;
+  }
+  return MOBILE_COLUMN_COUNT;
+}
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -62,6 +78,34 @@ export default function ProjectDetailPage() {
     [columnCount],
   );
 
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === 'undefined' ? DESKTOP_BREAKPOINT : window.innerWidth,
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const visibleColumnCount = useMemo(
+    () => getVisibleColumnCount(viewportWidth),
+    [viewportWidth],
+  );
+
+  const tableWrapperStyles = useMemo(
+    () =>
+      ({
+        '--project-grid-visible-columns': visibleColumnCount,
+        '--project-grid-total-columns': columnCount,
+      }) as CSSProperties,
+    [columnCount, visibleColumnCount],
+  );
+
   const handleAddEvent = () => {
     if (!projectId) {
       return;
@@ -101,7 +145,7 @@ export default function ProjectDetailPage() {
           </p>
         ) : null}
         <div className="project-grid">
-          <div className="project-grid__table-wrapper">
+          <div className="project-grid__table-wrapper" style={tableWrapperStyles}>
             <table className="project-grid__table">
               <thead>
                 <tr>
