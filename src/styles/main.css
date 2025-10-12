@@ -388,13 +388,12 @@ button:disabled {
   --project-grid-visible-columns: 24;
   --project-grid-total-columns: 100;
   overflow-x: auto;
-  width: min(
-    100%,
-    calc(
-      var(--project-grid-row-header-width) +
-        (var(--project-grid-visible-columns) * var(--project-grid-cell-width))
-    )
+  width: 100%;
+  max-width: calc(
+    var(--project-grid-row-header-width) +
+      (var(--project-grid-visible-columns) * var(--project-grid-cell-width))
   );
+  margin-inline: auto;
 }
 
 .project-grid__table {
