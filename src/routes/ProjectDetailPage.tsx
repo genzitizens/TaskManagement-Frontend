@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dayjs from 'dayjs';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
+import TaskModal from '../components/TaskModal';
+import type { TaskCreateInput } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -24,7 +26,9 @@ function getVisibleColumnCount(width: number) {
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const modalParam = searchParams.get('modal');
+  const isModalOpen = modalParam === 'create';
 
   const {
     data: project,
@@ -38,6 +42,8 @@ export default function ProjectDetailPage() {
     isLoading: tasksLoading,
     isError: tasksError,
     error: tasksErrorData,
+    createTask,
+    creating,
   } = useTasks(projectId);
 
   const tasks = tasksData?.content ?? [];
@@ -110,7 +116,19 @@ export default function ProjectDetailPage() {
     if (!projectId) {
       return;
     }
-    navigate(`/tasks?projectId=${projectId}&modal=create`);
+    const next = new URLSearchParams(searchParams);
+    next.set('modal', 'create');
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleCloseModal = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('modal');
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleCreateTask = async (input: TaskCreateInput) => {
+    await createTask(input);
   };
 
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
@@ -198,6 +216,14 @@ export default function ProjectDetailPage() {
             Add Event
           </button>
         </div>
+      <TaskModal
+        isOpen={isModalOpen}
+        projects={project ? [project] : []}
+        defaultProjectId={projectId}
+        submitting={creating}
+        onSubmit={handleCreateTask}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
