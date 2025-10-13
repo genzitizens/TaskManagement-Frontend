@@ -1,8 +1,11 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import dayjs from 'dayjs';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
+import TaskModal from '../components/TaskModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import type { TaskCreateInput } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -24,7 +27,9 @@ function getVisibleColumnCount(width: number) {
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const navigate = useNavigate();
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const isModalOpen = modalMode !== null;
 
   const {
     data: project,
@@ -38,9 +43,22 @@ export default function ProjectDetailPage() {
     isLoading: tasksLoading,
     isError: tasksError,
     error: tasksErrorData,
+    createTask,
+    creating,
+    deleteTask,
+    deleting,
+    updateTask,
+    updating,
   } = useTasks(projectId);
 
   const tasks = tasksData?.content ?? [];
+  const editingTask = useMemo(
+    () => (editingTaskId ? tasks.find((task) => task.id === editingTaskId) ?? null : null),
+    [editingTaskId, tasks],
+  );
+
+  const [taskIdPendingDelete, setTaskIdPendingDelete] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const projectStart = useMemo(() => {
     if (!project) {
@@ -107,10 +125,61 @@ export default function ProjectDetailPage() {
   );
 
   const handleAddEvent = () => {
-    if (!projectId) {
+    setModalMode('create');
+    setEditingTaskId(null);
+  };
+
+  const handleCloseModal = () => {
+    setModalMode(null);
+    setEditingTaskId(null);
+  };
+
+  const handleOpenEdit = (taskId: string) => {
+    setModalMode('edit');
+    setEditingTaskId(taskId);
+  };
+
+  const handleSubmitTask = async (input: TaskCreateInput, taskId?: string) => {
+    if (modalMode === 'edit' && taskId) {
+      await updateTask(taskId, input);
       return;
     }
-    navigate(`/tasks?projectId=${projectId}`);
+    await createTask(input);
+  };
+
+  const handleDeleteRequest = (taskId: string) => {
+    setTaskIdPendingDelete(taskId);
+    setDeleteError(null);
+  };
+
+  const taskPendingDelete = useMemo(
+    () => tasks.find((task) => task.id === taskIdPendingDelete) ?? null,
+    [taskIdPendingDelete, tasks],
+  );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!taskIdPendingDelete) {
+      return;
+    }
+    try {
+      await deleteTask(taskIdPendingDelete);
+      setDeleteError(null);
+      setTaskIdPendingDelete(null);
+      if (modalMode === 'edit' && taskIdPendingDelete === editingTaskId) {
+        setModalMode(null);
+        setEditingTaskId(null);
+      }
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete task');
+    }
+  }, [deleteTask, editingTaskId, modalMode, taskIdPendingDelete]);
+
+  const handleCancelDelete = () => {
+    if (deleting) {
+      return;
+    }
+    setTaskIdPendingDelete(null);
+    setDeleteError(null);
   };
 
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
@@ -164,10 +233,68 @@ export default function ProjectDetailPage() {
                     return (
                       <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
-                          <span className="project-grid__event-name">{task.title}</span>
-                          {task.description ? (
-                            <span className="project-grid__event-description">{task.description}</span>
-                          ) : null}
+                          <div className="project-grid__event-header">
+                            <div className="project-grid__event-text">
+                              <span className="project-grid__event-name">{task.title}</span>
+                              {task.description ? (
+                                <span className="project-grid__event-description">{task.description}</span>
+                              ) : null}
+                            </div>
+                            <div className="project-grid__event-actions">
+                              <button
+                                type="button"
+                                className="icon-button"
+                                onClick={() => handleOpenEdit(task.id)}
+                                aria-label={`Edit ${task.title}`}
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m16.862 4.487 1.651 1.651a1.875 1.875 0 0 1 0 2.652l-8.955 8.955a4.5 4.5 0 0 1-1.897 1.13l-3.068.878a.563.563 0 0 1-.69-.69l.878-3.068a4.5 4.5 0 0 1 1.13-1.897l8.955-8.955a1.875 1.875 0 0 1 2.652 0Z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19.5 7.125 16.875 4.5"
+                                  />
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                className="icon-button icon-button--danger"
+                                onClick={() => handleDeleteRequest(task.id)}
+                                aria-label={`Delete ${task.title}`}
+                              >
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  aria-hidden="true"
+                                  focusable="false"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.5"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M6 7.5h12M9.75 7.5V6a1.5 1.5 0 0 1 1.5-1.5h1.5A1.5 1.5 0 0 1 14.25 6v1.5m3 0V18a2.25 2.25 0 0 1-2.25 2.25h-6A2.25 2.25 0 0 1 6 18V7.5h12Z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M10.5 11.25v6m3-6v6"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
                         </th>
                         {dayColumns.map((dayNumber) => {
                           const isDueDay = typeof dueDay === 'number' && dueDay === dayNumber;
@@ -194,10 +321,41 @@ export default function ProjectDetailPage() {
       </section>
 
       <div className="project-detail__actions">
-          <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
-            Add Event
-          </button>
-        </div>
+        <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
+          Add Event
+        </button>
+      </div>
+      <TaskModal
+        isOpen={isModalOpen}
+        projects={project ? [project] : []}
+        defaultProjectId={projectId}
+        task={editingTask}
+        mode={modalMode === 'edit' ? 'edit' : 'create'}
+        submitting={modalMode === 'edit' ? updating : creating}
+        onSubmit={handleSubmitTask}
+        onClose={handleCloseModal}
+      />
+      <ConfirmDialog
+        isOpen={Boolean(taskIdPendingDelete)}
+        title="Delete task"
+        message={
+          <div className="confirm-dialog__message">
+            {taskPendingDelete ? (
+              <p>
+                Are you sure you want to delete <strong>{taskPendingDelete.title}</strong>? This
+                action cannot be undone.
+              </p>
+            ) : (
+              <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+            )}
+            {deleteError ? <p className="error-message">{deleteError}</p> : null}
+          </div>
+        }
+        confirmLabel="Delete"
+        submitting={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
