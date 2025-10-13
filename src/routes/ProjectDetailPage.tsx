@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type SVGProps } from 'react';
 import dayjs from 'dayjs';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
 import TaskModal from '../components/TaskModal';
-import type { TaskCreateInput } from '../types';
+import type { TaskCreateInput, TaskRes } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -28,7 +28,8 @@ export default function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const modalParam = searchParams.get('modal');
-  const isModalOpen = modalParam === 'create';
+  const selectedTaskId = searchParams.get('taskId');
+  const isCreateModalOpen = modalParam === 'create';
 
   const {
     data: project,
@@ -44,9 +45,22 @@ export default function ProjectDetailPage() {
     error: tasksErrorData,
     createTask,
     creating,
+    deleteTask,
+    deleting,
+    updateTask,
+    updating,
   } = useTasks(projectId);
 
   const tasks = tasksData?.content ?? [];
+
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.id === selectedTaskId) ?? null,
+    [selectedTaskId, tasks],
+  );
+
+  const isEditModalOpen = modalParam === 'edit' && Boolean(selectedTask);
+  const isDeleteModalOpen = modalParam === 'delete' && Boolean(selectedTask);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const projectStart = useMemo(() => {
     if (!project) {
@@ -112,23 +126,67 @@ export default function ProjectDetailPage() {
     [columnCount, visibleColumnCount],
   );
 
+  useEffect(() => {
+    if (modalParam !== 'delete') {
+      setDeleteError(null);
+    }
+  }, [modalParam]);
+
   const handleAddEvent = () => {
     if (!projectId) {
       return;
     }
     const next = new URLSearchParams(searchParams);
     next.set('modal', 'create');
+    next.delete('taskId');
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleEditTaskRequest = (taskId: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('modal', 'edit');
+    next.set('taskId', taskId);
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleDeleteTaskRequest = (taskId: string) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('modal', 'delete');
+    next.set('taskId', taskId);
+    setDeleteError(null);
     setSearchParams(next, { replace: true });
   };
 
   const handleCloseModal = () => {
     const next = new URLSearchParams(searchParams);
     next.delete('modal');
+    next.delete('taskId');
     setSearchParams(next, { replace: true });
+    setDeleteError(null);
   };
 
   const handleCreateTask = async (input: TaskCreateInput) => {
     await createTask(input);
+  };
+
+  const handleUpdateTask = async (input: TaskCreateInput) => {
+    if (!selectedTask) {
+      return;
+    }
+    await updateTask(selectedTask.id, input);
+  };
+
+  const handleDeleteTaskConfirm = async () => {
+    if (!selectedTask) {
+      return;
+    }
+    setDeleteError(null);
+    try {
+      await deleteTask(selectedTask.id);
+      handleCloseModal();
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete task');
+    }
   };
 
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
@@ -182,10 +240,32 @@ export default function ProjectDetailPage() {
                     return (
                       <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
-                          <span className="project-grid__event-name">{task.title}</span>
-                          {task.description ? (
-                            <span className="project-grid__event-description">{task.description}</span>
-                          ) : null}
+                          <div className="project-grid__row-content">
+                            <div className="project-grid__event-text">
+                              <span className="project-grid__event-name">{task.title}</span>
+                              {task.description ? (
+                                <span className="project-grid__event-description">{task.description}</span>
+                              ) : null}
+                            </div>
+                            <div className="project-grid__event-actions">
+                              <button
+                                type="button"
+                                className="project-grid__icon-button"
+                                onClick={() => handleEditTaskRequest(task.id)}
+                                aria-label={`Edit ${task.title}`}
+                              >
+                                <PencilIcon aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="project-grid__icon-button project-grid__icon-button--danger"
+                                onClick={() => handleDeleteTaskRequest(task.id)}
+                                aria-label={`Delete ${task.title}`}
+                              >
+                                <TrashIcon aria-hidden="true" />
+                              </button>
+                            </div>
+                          </div>
                         </th>
                         {dayColumns.map((dayNumber) => {
                           const isDueDay = typeof dueDay === 'number' && dueDay === dayNumber;
@@ -217,13 +297,124 @@ export default function ProjectDetailPage() {
           </button>
         </div>
       <TaskModal
-        isOpen={isModalOpen}
+        isOpen={isCreateModalOpen}
         projects={project ? [project] : []}
         defaultProjectId={projectId}
         submitting={creating}
         onSubmit={handleCreateTask}
         onClose={handleCloseModal}
       />
+      <TaskModal
+        isOpen={isEditModalOpen}
+        mode="edit"
+        task={selectedTask}
+        projects={project ? [project] : []}
+        defaultProjectId={selectedTask?.projectId ?? projectId}
+        submitting={updating}
+        onSubmit={handleUpdateTask}
+        onClose={handleCloseModal}
+      />
+      <DeleteTaskModal
+        isOpen={isDeleteModalOpen}
+        task={selectedTask}
+        submitting={deleting}
+        error={deleteError}
+        onCancel={handleCloseModal}
+        onConfirm={handleDeleteTaskConfirm}
+      />
     </div>
+  );
+}
+
+interface DeleteTaskModalProps {
+  isOpen: boolean;
+  task: TaskRes | null;
+  submitting: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => Promise<void>;
+}
+
+function DeleteTaskModal({
+  isOpen,
+  task,
+  submitting,
+  error,
+  onCancel,
+  onConfirm,
+}: DeleteTaskModalProps) {
+  if (!isOpen || !task) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    if (submitting) {
+      return;
+    }
+    onCancel();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-task-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="delete-task-modal-title">Delete task</h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onCancel}
+            aria-label="Close delete confirmation"
+            disabled={submitting}
+          >
+            ×
+          </button>
+        </div>
+        <div>
+          <p>
+            Are you sure you want to delete <strong>{task.title}</strong>? This action cannot be undone.
+          </p>
+          {error ? <p className="error-message">{error}</p> : null}
+        </div>
+        <div className="modal-actions">
+          <button type="button" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="button-danger"
+            onClick={() => {
+              void onConfirm();
+            }}
+            disabled={submitting}
+          >
+            {submitting ? 'Deleting…' : 'Delete task'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PencilIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M3 17.25V21h3.75l9.92-9.92-3.75-3.75L3 17.25zm2.92 1.83-.42-1.57 8.49-8.5 1.58 1.58-8.5 8.49-1.15.22z" />
+      <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+    </svg>
+  );
+}
+
+function TrashIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M5 7h14l-1 14H6L5 7zm4 2v10h2V9H9zm4 0v10h2V9h-2z" />
+      <path d="M9 4h6l1 1h5v2H3V5h5l1-1z" />
+    </svg>
   );
 }

@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { z } from 'zod';
-import type { ProjectRes, TaskCreateInput } from '../types';
+import type { ProjectRes, TaskCreateInput, TaskRes } from '../types';
 
 const taskSchema = z.object({
   projectId: z.string().uuid({ message: 'Select a project' }),
@@ -22,13 +22,32 @@ interface FormState {
   isActivity: boolean;
 }
 
-const createInitialState = (projectId?: string): FormState => ({
-  projectId: projectId ?? '',
-  title: '',
-  description: '',
-  endAt: '',
-  isActivity: false,
-});
+const formatDateTimeLocal = (value: string) => {
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DDTHH:mm') : '';
+};
+
+const createInitialState = (projectId?: string, task?: TaskRes | null): FormState => {
+  if (task) {
+    return {
+      projectId: task.projectId,
+      title: task.title,
+      description: task.description ?? '',
+      endAt: formatDateTimeLocal(task.endAt),
+      isActivity: Boolean(task.isActivity),
+    };
+  }
+
+  return {
+    projectId: projectId ?? '',
+    title: '',
+    description: '',
+    endAt: '',
+    isActivity: false,
+  };
+};
+
+export type TaskModalMode = 'create' | 'edit';
 
 export interface TaskModalProps {
   isOpen: boolean;
@@ -37,6 +56,8 @@ export interface TaskModalProps {
   submitting: boolean;
   onSubmit: (input: TaskCreateInput) => Promise<void>;
   onClose: () => void;
+  mode?: TaskModalMode;
+  task?: TaskRes | null;
 }
 
 export default function TaskModal({
@@ -46,19 +67,28 @@ export default function TaskModal({
   submitting,
   onSubmit,
   onClose,
+  mode = 'create',
+  task,
 }: TaskModalProps) {
-  const [form, setForm] = useState<FormState>(() => createInitialState(defaultProjectId));
+  const [form, setForm] = useState<FormState>(() => createInitialState(defaultProjectId, task));
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       return;
     }
-    setForm(createInitialState(defaultProjectId));
+    setForm(createInitialState(defaultProjectId, task));
     setFormError(null);
-  }, [defaultProjectId, isOpen]);
+  }, [defaultProjectId, isOpen, task]);
 
-  const submitLabel = useMemo(() => (submitting ? 'Creating…' : 'Create task'), [submitting]);
+  const submitLabel = useMemo(() => {
+    if (mode === 'edit') {
+      return submitting ? 'Saving…' : 'Save changes';
+    }
+    return submitting ? 'Creating…' : 'Create task';
+  }, [mode, submitting]);
+
+  const modalTitle = mode === 'edit' ? 'Edit Task' : 'Add Task';
 
   if (!isOpen) {
     return null;
@@ -118,7 +148,7 @@ export default function TaskModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 id="task-modal-title">Add Task</h3>
+          <h3 id="task-modal-title">{modalTitle}</h3>
           <button
             type="button"
             className="modal-close"
