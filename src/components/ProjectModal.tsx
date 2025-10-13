@@ -45,6 +45,8 @@ export default function ProjectModal({
 }: ProjectModalProps) {
   const [form, setForm] = useState<FormState>(() => createInitialState());
   const [formError, setFormError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen && mode === 'edit' && project) {
@@ -57,6 +59,8 @@ export default function ProjectModal({
     }
     if (isOpen) {
       setFormError(null);
+      setDeleteError(null);
+      setShowDeleteConfirm(false);
     }
   }, [isOpen, mode, project?.id, project?.name, project?.description]);
 
@@ -95,22 +99,32 @@ export default function ProjectModal({
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!project || !onDelete) {
       return;
     }
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this project? This action cannot be undone.'
-    );
-    if (!confirmed) {
+    setDeleteError(null);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!project || !onDelete) {
       return;
     }
-    setFormError(null);
+    setDeleteError(null);
     try {
       await onDelete(project);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Failed to delete project');
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete project');
     }
+  };
+
+  const handleDeleteCancel = () => {
+    if (deleting) {
+      return;
+    }
+    setShowDeleteConfirm(false);
+    setDeleteError(null);
   };
 
   if (!isOpen) {
@@ -127,80 +141,167 @@ export default function ProjectModal({
   };
 
   return (
+    <>
+      <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+        <div
+          className="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="project-modal-title"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="modal-header">
+            <h3 id="project-modal-title">{mode === 'edit' ? 'Edit Project' : 'Add Project'}</h3>
+            <button
+              type="button"
+              className="modal-close"
+              onClick={onClose}
+              aria-label="Close project form"
+              disabled={isBusy}
+            >
+              ×
+            </button>
+          </div>
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="project-name-modal">Name</label>
+              <input
+                id="project-name-modal"
+                name="name"
+                value={form.name}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    name: event.target.value,
+                  }))
+                }
+                placeholder="Summer roadmap"
+                required
+                maxLength={160}
+                disabled={submitting}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="project-description-modal">Description</label>
+              <textarea
+                id="project-description-modal"
+                name="description"
+                value={form.description}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    description: event.target.value,
+                  }))
+                }
+                placeholder="What are we delivering?"
+                maxLength={10000}
+                rows={3}
+                disabled={submitting}
+              />
+            </div>
+            {formError ? <p className="error-message">{formError}</p> : null}
+            <div className="modal-actions">
+              {mode === 'edit' && onDelete ? (
+                <button
+                  type="button"
+                  className="button-danger"
+                  onClick={handleDeleteClick}
+                  disabled={isBusy}
+                >
+                  Delete project
+                </button>
+              ) : null}
+              <button type="submit" disabled={isBusy}>
+                {submitLabel}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {mode === 'edit' && onDelete && project ? (
+        <DeleteProjectModal
+          isOpen={showDeleteConfirm}
+          project={project}
+          submitting={deleting}
+          error={deleteError}
+          onCancel={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+        />
+      ) : null}
+    </>
+  );
+}
+
+interface DeleteProjectModalProps {
+  isOpen: boolean;
+  project: ProjectRes | null;
+  submitting: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => Promise<void>;
+}
+
+function DeleteProjectModal({
+  isOpen,
+  project,
+  submitting,
+  error,
+  onCancel,
+  onConfirm,
+}: DeleteProjectModalProps) {
+  if (!isOpen || !project) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    if (submitting) {
+      return;
+    }
+    onCancel();
+  };
+
+  return (
     <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
       <div
         className="modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="project-modal-title"
+        aria-labelledby="delete-project-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 id="project-modal-title">{mode === 'edit' ? 'Edit Project' : 'Add Project'}</h3>
+          <h3 id="delete-project-modal-title">Delete project</h3>
           <button
             type="button"
             className="modal-close"
-            onClick={onClose}
-            aria-label="Close project form"
-            disabled={isBusy}
+            onClick={onCancel}
+            aria-label="Close delete confirmation"
+            disabled={submitting}
           >
             ×
           </button>
         </div>
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="project-name-modal">Name</label>
-            <input
-              id="project-name-modal"
-              name="name"
-              value={form.name}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  name: event.target.value,
-                }))
-              }
-              placeholder="Summer roadmap"
-              required
-              maxLength={160}
-              disabled={submitting}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="project-description-modal">Description</label>
-            <textarea
-              id="project-description-modal"
-              name="description"
-              value={form.description}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  description: event.target.value,
-                }))
-              }
-              placeholder="What are we delivering?"
-              maxLength={10000}
-              rows={3}
-              disabled={submitting}
-            />
-          </div>
-          {formError ? <p className="error-message">{formError}</p> : null}
-          <div className="modal-actions">
-            {mode === 'edit' && onDelete ? (
-              <button
-                type="button"
-                className="button-danger"
-                onClick={() => void handleDelete()}
-                disabled={isBusy}
-              >
-                {deleting ? 'Deleting…' : 'Delete project'}
-              </button>
-            ) : null}
-            <button type="submit" disabled={isBusy}>
-              {submitLabel}
-            </button>
-          </div>
-        </form>
+        <div>
+          <p>
+            Are you sure you want to delete <strong>{project.name}</strong>? This action cannot be undone.
+          </p>
+          {error ? <p className="error-message">{error}</p> : null}
+        </div>
+        <div className="modal-actions">
+          <button type="button" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="button-danger"
+            onClick={() => {
+              void onConfirm();
+            }}
+            disabled={submitting}
+          >
+            {submitting ? 'Deleting…' : 'Delete project'}
+          </button>
+        </div>
       </div>
     </div>
   );
