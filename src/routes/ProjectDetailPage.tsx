@@ -124,9 +124,11 @@ export default function ProjectDetailPage() {
           <h2 className="project-detail__title">{projectTitle}</h2>
           {projectError ? <p className="error-message">{projectDescription}</p> : null}
         </div>
-        <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
-          Add Event
-        </button>
+        <div className="project-detail__actions">
+          <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
+            Add Event
+          </button>
+        </div>
       </div>
 
       {project && project.description ? (
