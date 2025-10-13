@@ -27,6 +27,10 @@ body {
   max-width: none;
 }
 
+.app-header {
+  text-align: center;
+}
+
 .app-header h1 {
   margin: 0;
   font-size: clamp(1.75rem, 2vw + 1rem, 2.5rem);
@@ -42,6 +46,7 @@ body {
   gap: 1rem;
   border-bottom: 1px solid #cbd5f5;
   padding-bottom: 0.5rem;
+  justify-content: center;
 }
 
 .app-nav a {
@@ -204,7 +209,21 @@ button:disabled {
   gap: 1rem;
 }
 
+.modal-content {
+  margin-top: 1rem;
+  color: #1e293b;
+  display: grid;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
 .menu-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tasks-page {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -218,11 +237,28 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.tasks-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
 .menu-header h2 {
   margin: 0 0 0.25rem;
 }
 
+.tasks-page__header h2 {
+  margin: 0 0 0.25rem;
+}
+
 .menu-subtitle {
+  margin: 0;
+  color: #475569;
+}
+
+.tasks-page__subtitle {
   margin: 0;
   color: #475569;
 }
@@ -323,6 +359,44 @@ button:disabled {
 
 .button-danger {
   background: #dc2626;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.icon-button svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+}
+
+.icon-button:hover,
+.icon-button:focus-visible {
+  background: rgba(148, 163, 184, 0.2);
+  outline: none;
+}
+
+.icon-button:focus-visible {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+}
+
+.icon-button--danger {
+  color: #dc2626;
+}
+
+.icon-button--danger:hover,
+.icon-button--danger:focus-visible {
+  background: rgba(220, 38, 38, 0.1);
 }
 
 .list-item-actions {
@@ -456,6 +530,24 @@ button:disabled {
   max-width: var(--project-grid-row-header-width);
 }
 
+.project-grid__event-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.project-grid__event-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.project-grid__event-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
 .project-grid__event-name {
   font-weight: 600;
   color: #0f172a;
@@ -465,6 +557,11 @@ button:disabled {
 .project-grid__event-description {
   color: #64748b;
   font-size: 0.85rem;
+}
+
+.confirm-dialog__message {
+  display: grid;
+  gap: 0.5rem;
 }
 
 .project-grid__cell {
