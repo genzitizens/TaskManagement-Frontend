@@ -30,7 +30,7 @@ export function deleteTask(taskId: string) {
 
 export function updateTask(taskId: string, payload: TaskUpdateInput) {
   return apiRequest<TaskRes>(`/api/tasks/${taskId}`, {
-    method: 'PUT',
+    method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }
