@@ -110,7 +110,7 @@ export default function ProjectDetailPage() {
     if (!projectId) {
       return;
     }
-    navigate(`/tasks?projectId=${projectId}`);
+    navigate(`/tasks?projectId=${projectId}&modal=create`);
   };
 
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
