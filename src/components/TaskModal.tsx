@@ -134,7 +134,7 @@ export default function TaskModal({
       await onSubmit(payload);
       onClose();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Failed to create task');
+      setFormError(error instanceof Error ? error.message : 'Failed to save task');
     }
   };
 

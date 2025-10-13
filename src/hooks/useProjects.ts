@@ -23,7 +23,7 @@ export function useProjects() {
   const updateMutation = useMutation({
     mutationFn: ({ id, input }: { id: string; input: ProjectUpdateInput }) =>
       apiRequest<ProjectRes>(`/api/projects/${id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(input),
       }),
     onSuccess: () => {
