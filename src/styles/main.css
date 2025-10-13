@@ -342,10 +342,15 @@ button:disabled {
 
 .project-detail__header {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+}
+
+.project-detail__actions {
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .project-detail__title {
