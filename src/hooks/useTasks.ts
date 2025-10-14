@@ -11,6 +11,13 @@ export function useTasks(projectId?: string) {
     queryKey,
     queryFn: () => listTasks({ projectId }),
     enabled: Boolean(projectId),
+    select: (data) => ({
+      ...data,
+      content: [...data.content].sort(
+        (taskA, taskB) =>
+          new Date(taskA.createdAt).getTime() - new Date(taskB.createdAt).getTime(),
+      ),
+    }),
     onSuccess: (data) => {
       console.log('Tasks data from backend:', data);
     },
