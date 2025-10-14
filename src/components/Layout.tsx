@@ -8,13 +8,13 @@ export default function Layout() {
     <div className={`app-shell${isProjectDetailPage ? ' app-shell--wide' : ''}`}>
       <header className="app-header">
         <h1>ICT 302 Task Management</h1>
-        <p className="app-tagline">Projects, tasks, and notes at a glance.</p>
+        <p className="app-tagline">Projects and tasks at a glance.</p>
       </header>
       <nav className="app-nav">
         <NavLink to="/" end>
           Menu
         </NavLink>
-        <NavLink to="/notes">Notes</NavLink>
+        <NavLink to="/tasks">Tasks</NavLink>
       </nav>
       <main className="app-main"> 
         <Outlet />

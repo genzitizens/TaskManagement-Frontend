@@ -4,7 +4,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
 import TaskModal from '../components/TaskModal';
-import type { TaskCreateInput, TaskRes } from '../types';
+import type { TaskRes, TaskWithNoteInput } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -165,15 +165,15 @@ export default function ProjectDetailPage() {
     setDeleteError(null);
   };
 
-  const handleCreateTask = async (input: TaskCreateInput) => {
+  const handleCreateTask = async (input: TaskWithNoteInput) => {
     await createTask(input);
   };
 
-  const handleUpdateTask = async (input: TaskCreateInput) => {
+  const handleUpdateTask = async (input: TaskWithNoteInput) => {
     if (!selectedTask) {
       return;
     }
-    await updateTask(selectedTask.id, input);
+    await updateTask(selectedTask.id, input.task, input.noteAction);
   };
 
   const handleDeleteTaskConfirm = async () => {
@@ -245,6 +245,9 @@ export default function ProjectDetailPage() {
                               <span className="project-grid__event-name">{task.title}</span>
                               {task.description ? (
                                 <span className="project-grid__event-description">{task.description}</span>
+                              ) : null}
+                              {task.note?.body ? (
+                                <span className="project-grid__event-note">Note: {task.note.body}</span>
                               ) : null}
                             </div>
                             <div className="project-grid__event-actions">

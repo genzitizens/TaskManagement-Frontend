@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createTask, deleteTask, listTasks, updateTask as updateTaskApi } from '../api/tasks';
-import type { TaskCreateInput, TaskUpdateInput } from '../types';
+import { createNote, deleteNote, updateNote } from '../api/notes';
+import type { NoteAction, TaskUpdateInput, TaskWithNoteInput } from '../types';
 import { queryClient } from '../queryClient';
 
 export function useTasks(projectId?: string) {
@@ -13,7 +14,11 @@ export function useTasks(projectId?: string) {
   });
 
   const create = useMutation({
-    mutationFn: (input: TaskCreateInput) => createTask(input),
+    mutationFn: async ({ task, noteAction }: TaskWithNoteInput) => {
+      const createdTask = await createTask(task);
+      await handleNoteAction({ noteAction, taskId: createdTask.id });
+      return createdTask;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
@@ -23,8 +28,19 @@ export function useTasks(projectId?: string) {
   });
 
   const update = useMutation({
-    mutationFn: ({ taskId, data }: { taskId: string; data: TaskUpdateInput }) =>
-      updateTaskApi(taskId, data),
+    mutationFn: async ({
+      taskId,
+      data,
+      noteAction,
+    }: {
+      taskId: string;
+      data: TaskUpdateInput;
+      noteAction: NoteAction;
+    }) => {
+      const updatedTask = await updateTaskApi(taskId, data);
+      await handleNoteAction({ noteAction, taskId });
+      return updatedTask;
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
@@ -34,7 +50,34 @@ export function useTasks(projectId?: string) {
     creating: create.isPending,
     deleteTask: remove.mutateAsync,
     deleting: remove.isPending,
-    updateTask: (taskId: string, data: TaskUpdateInput) => update.mutateAsync({ taskId, data }),
+    updateTask: (taskId: string, data: TaskUpdateInput, noteAction: NoteAction) =>
+      update.mutateAsync({ taskId, data, noteAction }),
     updating: update.isPending,
   };
+}
+
+async function handleNoteAction({
+  noteAction,
+  taskId,
+}: {
+  noteAction: NoteAction;
+  taskId: string;
+}) {
+  switch (noteAction.type) {
+    case 'none':
+      return;
+    case 'create':
+      await createNote({ taskId, body: noteAction.body });
+      return;
+    case 'update':
+      await updateNote(noteAction.id, { body: noteAction.body });
+      return;
+    case 'delete':
+      await deleteNote(noteAction.id);
+      return;
+    default: {
+      const exhaustiveCheck: never = noteAction;
+      return exhaustiveCheck;
+    }
+  }
 }

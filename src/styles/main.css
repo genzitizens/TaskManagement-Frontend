@@ -144,6 +144,12 @@ button:disabled {
   background: #f8fafc;
 }
 
+.list-item__note {
+  color: #475569;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .list-item-button {
   display: flex;
   flex-direction: column;
@@ -509,6 +515,12 @@ button:disabled {
 .project-grid__event-description {
   color: #64748b;
   font-size: 0.85rem;
+}
+
+.project-grid__event-note {
+  color: #475569;
+  font-size: 0.8rem;
+  font-style: italic;
 }
 
 .project-grid__event-actions {
