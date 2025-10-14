@@ -16,6 +16,6 @@ describe('App', () => {
   it('renders navigation links', () => {
     renderApp();
     expect(screen.getByRole('link', { name: /menu/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /tasks/i })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /tasks/i })).not.toBeInTheDocument();
   });
 });
