@@ -7,8 +7,8 @@ export default function Layout() {
   return (
     <div className={`app-shell${isProjectDetailPage ? ' app-shell--wide' : ''}`}>
       <header className="app-header">
-        <h1>ICT 302 Task Management</h1>
-        <p className="app-tagline">Projects and tasks at a glance.</p>
+        <h1>Task Management System</h1>
+        <p className="app-tagline">Projects at a glance.</p>
       </header>
       <nav className="app-nav">
         <NavLink to="/" end>
