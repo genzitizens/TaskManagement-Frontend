@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useProjects } from '../hooks/useProjects';
 import { useTasks } from '../hooks/useTasks';
 import TaskModal from '../components/TaskModal';
-import type { TaskCreateInput } from '../types';
+import type { TaskWithNoteInput } from '../types';
 
 export default function TasksPage() {
   const { data: projectData, isLoading: projectsLoading, isError: projectsError, error: projectsErrorData } =
@@ -45,7 +45,7 @@ export default function TasksPage() {
     setSearchParams(next, { replace: true });
   };
 
-  const handleCreateTask = async (input: TaskCreateInput) => {
+  const handleCreateTask = async (input: TaskWithNoteInput) => {
     await createTask(input);
   };
 
@@ -100,6 +100,7 @@ export default function TasksPage() {
             <li key={task.id} className="list-item">
               <strong>{task.title}</strong>
               {task.description ? <p>{task.description}</p> : null}
+              {task.note?.body ? <p className="list-item__note">Note: {task.note.body}</p> : null}
               <p className="badge">Due {dayjs(task.endAt).format('MMM D, YYYY h:mm A')}</p>
               <button
                 type="button"

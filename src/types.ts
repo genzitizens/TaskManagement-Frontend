@@ -15,6 +15,7 @@ export interface TaskRes {
   endAt: string;
   createdAt: string;
   updatedAt: string;
+  note?: NoteRes | null;
 }
 
 export interface NoteRes {
@@ -61,4 +62,19 @@ export interface NoteCreateInput {
   projectId?: string;
   taskId?: string;
   body: string;
+}
+
+export interface NoteUpdateInput {
+  body: string;
+}
+
+export type NoteAction =
+  | { type: 'none' }
+  | { type: 'create'; body: string }
+  | { type: 'update'; id: string; body: string }
+  | { type: 'delete'; id: string };
+
+export interface TaskWithNoteInput {
+  task: TaskCreateInput;
+  noteAction: NoteAction;
 }

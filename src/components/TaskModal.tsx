@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { z } from 'zod';
-import type { ProjectRes, TaskCreateInput, TaskRes } from '../types';
+import type { NoteAction, ProjectRes, TaskCreateInput, TaskRes, TaskWithNoteInput } from '../types';
 
 const taskSchema = z.object({
   projectId: z.string().uuid({ message: 'Select a project' }),
@@ -20,6 +20,8 @@ interface FormState {
   description: string;
   endAt: string;
   isActivity: boolean;
+  hasNote: boolean;
+  note: string;
 }
 
 const formatDateTimeLocal = (value: string) => {
@@ -35,6 +37,8 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       description: task.description ?? '',
       endAt: formatDateTimeLocal(task.endAt),
       isActivity: Boolean(task.isActivity),
+      hasNote: Boolean(task.note?.body),
+      note: task.note?.body ?? '',
     };
   }
 
@@ -44,6 +48,8 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
     description: '',
     endAt: '',
     isActivity: false,
+    hasNote: false,
+    note: '',
   };
 };
 
@@ -54,7 +60,7 @@ export interface TaskModalProps {
   projects: ProjectRes[];
   defaultProjectId?: string;
   submitting: boolean;
-  onSubmit: (input: TaskCreateInput) => Promise<void>;
+  onSubmit: (input: TaskWithNoteInput) => Promise<void>;
   onClose: () => void;
   mode?: TaskModalMode;
   task?: TaskRes | null;
@@ -130,8 +136,27 @@ export default function TaskModal({
       endAt: dueDate.toISOString(),
     };
 
+    const trimmedNote = form.note.trim();
+
+    if (form.hasNote) {
+      if (!trimmedNote) {
+        setFormError('Provide a note');
+        return;
+      }
+      if (trimmedNote.length > NOTE_MAX_LENGTH) {
+        setFormError(`Note must be ${NOTE_MAX_LENGTH.toLocaleString()} characters or fewer`);
+        return;
+      }
+    }
+
+    const noteAction = determineNoteAction({
+      hasNote: form.hasNote,
+      note: trimmedNote,
+      existingNote: task?.note ?? null,
+    });
+
     try {
-      await onSubmit(payload);
+      await onSubmit({ task: payload, noteAction });
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Failed to save task');
@@ -252,6 +277,42 @@ export default function TaskModal({
               Activity task
             </label>
           </div>
+          <div className="field">
+            <label>
+              <input
+                type="checkbox"
+                checked={form.hasNote}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    hasNote: event.target.checked,
+                  }))
+                }
+                disabled={submitting}
+              />{' '}
+              Add note
+            </label>
+          </div>
+          {form.hasNote ? (
+            <div className="field">
+              <label htmlFor="task-note-modal">Note</label>
+              <textarea
+                id="task-note-modal"
+                name="note"
+                value={form.note}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    note: event.target.value,
+                  }))
+                }
+                placeholder="Add important context"
+                rows={4}
+                maxLength={NOTE_MAX_LENGTH}
+                disabled={submitting}
+              />
+            </div>
+          ) : null}
           {formError ? <p className="error-message">{formError}</p> : null}
           <div className="modal-actions">
             <button type="submit" disabled={submitting}>
@@ -262,4 +323,37 @@ export default function TaskModal({
       </div>
     </div>
   );
+}
+
+const NOTE_MAX_LENGTH = 20000;
+
+function determineNoteAction({
+  hasNote,
+  note,
+  existingNote,
+}: {
+  hasNote: boolean;
+  note: string;
+  existingNote: TaskRes['note'] | null;
+}): NoteAction {
+  if (!hasNote) {
+    if (existingNote) {
+      return { type: 'delete', id: existingNote.id };
+    }
+    return { type: 'none' };
+  }
+
+  if (!note) {
+    return { type: 'none' };
+  }
+
+  if (!existingNote) {
+    return { type: 'create', body: note };
+  }
+
+  if (existingNote.body !== note) {
+    return { type: 'update', id: existingNote.id, body: note };
+  }
+
+  return { type: 'none' };
 }

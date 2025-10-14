@@ -1,5 +1,5 @@
 import { apiRequest, DEFAULT_PAGE_SIZE } from './client';
-import type { NoteCreateInput, NoteRes, Page } from '../types';
+import type { NoteCreateInput, NoteRes, NoteUpdateInput, Page } from '../types';
 
 export interface ListNotesParams {
   projectId?: string;
@@ -20,5 +20,18 @@ export function createNote(payload: NoteCreateInput) {
   return apiRequest<NoteRes>('/api/notes', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export function updateNote(noteId: string, payload: NoteUpdateInput) {
+  return apiRequest<NoteRes>(`/api/notes/${noteId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteNote(noteId: string) {
+  return apiRequest<void>(`/api/notes/${noteId}`, {
+    method: 'DELETE',
   });
 }

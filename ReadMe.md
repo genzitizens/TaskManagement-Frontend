@@ -12,7 +12,7 @@ Codex Frontend is a single-page application built with React, Vite, and TypeScri
 
 - **List & create Projects**
 - **List, create, and delete Tasks** per Project
-- **List & create Notes** for either a Project *or* a Task (mutually exclusive)
+- **Capture contextual task notes** directly from the task form
 
 The app integrates with the Task Management API. No authentication is assumed (add later if required).
 
@@ -123,13 +123,9 @@ The Nginx image includes a `/healthz` endpoint for container health checks.
 ### Tasks
 
 - Scope tasks to a selected project
-- Create tasks with due dates, optional description, and activity flag
+- Create tasks with due dates, optional description, optional note, and activity flag
 - Delete tasks inline with optimistic cache refresh
-
-### Notes
-
-- Switch between project-scoped or task-scoped notes
-- Create notes (body ≤ 20,000 chars) and view them for the selected scope
+- Maintain a single note per task with create, update, and delete flows
 
 ---
 
@@ -164,7 +160,7 @@ Vitest is configured with jsdom and Testing Library. Example tests live in `src/
 ## Future enhancements
 
 - Persist selected pagination/sort settings
-- Integrate full CRUD (update/delete) flows for projects and notes
+- Surface richer reporting or history for task notes
 - Add authentication and protected routes when the API supports it
 - Replace inline styling with a component library or CSS framework if desired
 
