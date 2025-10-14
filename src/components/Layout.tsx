@@ -14,7 +14,6 @@ export default function Layout() {
         <NavLink to="/" end>
           Menu
         </NavLink>
-        <NavLink to="/tasks">Tasks</NavLink>
       </nav>
       <main className="app-main"> 
         <Outlet />

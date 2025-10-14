@@ -37,7 +37,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       description: task.description ?? '',
       endAt: formatDateTimeLocal(task.endAt),
       isActivity: Boolean(task.isActivity),
-      hasNote: Boolean(task.note?.body),
+      hasNote: Boolean(task.note),
       note: task.note?.body ?? '',
     };
   }
