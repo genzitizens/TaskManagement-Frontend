@@ -3,6 +3,7 @@ import { createTask, deleteTask, listTasks, updateTask as updateTaskApi } from '
 import { createNote, deleteNote, updateNote } from '../api/notes';
 import type { NoteAction, TaskUpdateInput, TaskWithNoteInput } from '../types';
 import { queryClient } from '../queryClient';
+import { toBoolean } from '../utils/toBoolean';
 
 export function useTasks(projectId?: string) {
   const queryKey = ['tasks', { projectId }];
@@ -13,10 +14,15 @@ export function useTasks(projectId?: string) {
     enabled: Boolean(projectId),
     select: (data) => ({
       ...data,
-      content: [...data.content].sort(
-        (taskA, taskB) =>
-          new Date(taskA.createdAt).getTime() - new Date(taskB.createdAt).getTime(),
-      ),
+      content: [...data.content]
+        .map((task) => ({
+          ...task,
+          isActivity: task.isActivity === undefined ? undefined : toBoolean(task.isActivity),
+        }))
+        .sort(
+          (taskA, taskB) =>
+            new Date(taskA.createdAt).getTime() - new Date(taskB.createdAt).getTime(),
+        ),
     }),
     onSuccess: (data) => {
       console.log('Tasks data from backend:', data);
