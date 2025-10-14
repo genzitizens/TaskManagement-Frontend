@@ -29,6 +29,33 @@ const formatDateTimeLocal = (value: string) => {
   return parsed.isValid() ? parsed.format('YYYY-MM-DDTHH:mm') : '';
 };
 
+const toBoolean = (value: unknown): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1') {
+      return true;
+    }
+    if (normalized === 'false' || normalized === '0') {
+      return false;
+    }
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+
+  return false;
+};
+
 const createInitialState = (projectId?: string, task?: TaskRes | null): FormState => {
   if (task) {
     return {
@@ -36,7 +63,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       title: task.title,
       description: task.description ?? '',
       endAt: formatDateTimeLocal(task.endAt),
-      isActivity: Boolean(task.isActivity),
+      isActivity: toBoolean(task.isActivity),
       hasNote: Boolean(task.note),
       note: task.note?.body ?? '',
     };
