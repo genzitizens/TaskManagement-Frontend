@@ -11,6 +11,9 @@ export function useTasks(projectId?: string) {
     queryKey,
     queryFn: () => listTasks({ projectId }),
     enabled: Boolean(projectId),
+    onSuccess: (data) => {
+      console.log('Tasks data from backend:', data);
+    },
   });
 
   const create = useMutation({
