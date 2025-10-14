@@ -84,9 +84,17 @@ export default function TaskModal({
     if (!isOpen) {
       return;
     }
-    setForm(createInitialState(defaultProjectId, task));
+
+    const initialState = createInitialState(defaultProjectId, task);
+
+    if (mode === 'edit') {
+      // eslint-disable-next-line no-console -- Logging backend task payload for debugging edit flow
+      console.log('TaskModal edit task data', task ?? null);
+    }
+
+    setForm(initialState);
     setFormError(null);
-  }, [defaultProjectId, isOpen, task]);
+  }, [defaultProjectId, isOpen, mode, task]);
 
   const submitLabel = useMemo(() => {
     if (mode === 'edit') {
