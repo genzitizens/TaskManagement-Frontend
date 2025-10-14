@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
+import { listNotes } from '../api/notes';
 import TaskModal from '../components/TaskModal';
 import type { TaskRes, TaskWithNoteInput } from '../types';
 
@@ -57,6 +58,58 @@ export default function ProjectDetailPage() {
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
     [selectedTaskId, tasks],
   );
+
+  const [selectedTaskNote, setSelectedTaskNote] = useState<TaskRes['note'] | null>(null);
+
+  useEffect(() => {
+    if (!selectedTask) {
+      setSelectedTaskNote(null);
+      return;
+    }
+
+    setSelectedTaskNote(selectedTask.note ?? null);
+
+    if (modalParam !== 'edit' || selectedTask.note) {
+      return;
+    }
+
+    let ignore = false;
+
+    (async () => {
+      try {
+        const response = await listNotes({ taskId: selectedTask.id, size: 1 });
+        if (!ignore) {
+          setSelectedTaskNote(response.content.at(0) ?? null);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setSelectedTaskNote(null);
+        }
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [modalParam, selectedTask]);
+
+  const taskForModal = useMemo<TaskRes | null>(() => {
+    if (!selectedTask) {
+      return null;
+    }
+
+    if (modalParam !== 'edit') {
+      return selectedTask;
+    }
+
+    const effectiveNote = selectedTaskNote ?? selectedTask.note ?? null;
+
+    if (selectedTask.note === effectiveNote) {
+      return selectedTask.note === undefined ? { ...selectedTask, note: null } : selectedTask;
+    }
+
+    return { ...selectedTask, note: effectiveNote };
+  }, [modalParam, selectedTask, selectedTaskNote]);
 
   const isEditModalOpen = modalParam === 'edit' && Boolean(selectedTask);
   const isDeleteModalOpen = modalParam === 'delete' && Boolean(selectedTask);
@@ -310,7 +363,7 @@ export default function ProjectDetailPage() {
       <TaskModal
         isOpen={isEditModalOpen}
         mode="edit"
-        task={selectedTask}
+        task={taskForModal}
         projects={project ? [project] : []}
         defaultProjectId={selectedTask?.projectId ?? projectId}
         submitting={updating}
