@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { z } from 'zod';
 import type { NoteAction, ProjectRes, TaskCreateInput, TaskRes, TaskWithNoteInput } from '../types';
+import { toBoolean } from '../utils/toBoolean';
 
 const taskSchema = z.object({
   projectId: z.string().uuid({ message: 'Select a project' }),
@@ -27,33 +28,6 @@ interface FormState {
 const formatDateTimeLocal = (value: string) => {
   const parsed = dayjs(value);
   return parsed.isValid() ? parsed.format('YYYY-MM-DDTHH:mm') : '';
-};
-
-const toBoolean = (value: unknown): boolean => {
-  if (typeof value === 'boolean') {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const normalized = value.trim().toLowerCase();
-    if (normalized === 'true' || normalized === '1') {
-      return true;
-    }
-    if (normalized === 'false' || normalized === '0') {
-      return false;
-    }
-  }
-
-  if (typeof value === 'number') {
-    if (value === 1) {
-      return true;
-    }
-    if (value === 0) {
-      return false;
-    }
-  }
-
-  return false;
 };
 
 const createInitialState = (projectId?: string, task?: TaskRes | null): FormState => {
