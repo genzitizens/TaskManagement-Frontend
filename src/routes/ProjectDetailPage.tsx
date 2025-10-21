@@ -52,7 +52,7 @@ export default function ProjectDetailPage() {
     updating,
   } = useTasks(projectId);
 
-  const tasks = tasksData?.content ?? [];
+  const tasks: TaskRes[] = tasksData?.content ?? [];
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -79,7 +79,7 @@ export default function ProjectDetailPage() {
       try {
         const response = await listNotes({ taskId: selectedTask.id, size: 1 });
         if (!ignore) {
-          setSelectedTaskNote(response.content.at(0) ?? null);
+          setSelectedTaskNote(response.content[0] ?? null);
         }
       } catch (error) {
         if (!ignore) {
@@ -131,7 +131,7 @@ export default function ProjectDetailPage() {
     let maxDay = MINIMUM_DAY_COLUMNS;
     const dueMap = new Map<string, number>();
 
-    tasks.forEach((task) => {
+    tasks.forEach((task: TaskRes) => {
       const dueDate = dayjs(task.endAt);
       if (!dueDate.isValid()) {
         return;
@@ -288,7 +288,7 @@ export default function ProjectDetailPage() {
               </thead>
               {tasks.length ? (
                 <tbody>
-                  {tasks.map((task) => {
+                  {tasks.map((task: TaskRes) => {
                     const dueDay = taskDueDay.get(task.id);
                     return (
                       <tr key={task.id}>

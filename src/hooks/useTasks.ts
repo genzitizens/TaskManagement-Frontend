@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createTask, deleteTask, listTasks, updateTask as updateTaskApi } from '../api/tasks';
 import { createNote, deleteNote, updateNote } from '../api/notes';
-import type { NoteAction, TaskUpdateInput, TaskWithNoteInput } from '../types';
+import type { NoteAction, Page, TaskRes, TaskUpdateInput, TaskWithNoteInput } from '../types';
 import { queryClient } from '../queryClient';
 import { toBoolean } from '../utils/toBoolean';
 
@@ -12,10 +12,10 @@ export function useTasks(projectId?: string) {
     queryKey,
     queryFn: () => listTasks({ projectId }),
     enabled: Boolean(projectId),
-    select: (data) => ({
+    select: (data: Page<TaskRes>): Page<TaskRes> => ({
       ...data,
       content: [...data.content]
-        .map((task) => ({
+        .map((task): TaskRes => ({
           ...task,
           isActivity: task.isActivity === undefined ? undefined : toBoolean(task.isActivity),
         }))
@@ -24,9 +24,6 @@ export function useTasks(projectId?: string) {
             new Date(taskA.createdAt).getTime() - new Date(taskB.createdAt).getTime(),
         ),
     }),
-    onSuccess: (data) => {
-      console.log('Tasks data from backend:', data);
-    },
   });
 
   const create = useMutation({
