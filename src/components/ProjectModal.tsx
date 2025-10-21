@@ -81,8 +81,8 @@ export default function ProjectModal({
     });
 
     if (!result.success) {
-      const first = result.error.issues.at(0);
-      setFormError(first?.message ?? 'Invalid input');
+      const firstIssue = result.error.issues[0];
+      setFormError(firstIssue?.message ?? 'Invalid input');
       return;
     }
 
