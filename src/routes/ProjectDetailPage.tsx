@@ -299,6 +299,12 @@ export default function ProjectDetailPage() {
                               {task.description ? (
                                 <span className="project-grid__event-description">{task.description}</span>
                               ) : null}
+                              {Number.isFinite(task.duration) ? (
+                                <span className="project-grid__event-description">
+                                  Duration: {task.duration}{' '}
+                                  {task.duration === 1 ? 'day' : 'days'}
+                                </span>
+                              ) : null}
                               {task.note?.body ? (
                                 <span className="project-grid__event-note">Note: {task.note.body}</span>
                               ) : null}
