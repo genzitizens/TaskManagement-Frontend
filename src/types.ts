@@ -12,6 +12,7 @@ export interface TaskRes {
   title: string;
   description?: string;
   isActivity?: boolean;
+  duration: number;
   endAt: string;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +54,7 @@ export interface TaskCreateInput {
   title: string;
   description?: string;
   isActivity?: boolean;
+  duration: number;
   endAt: string;
 }
 

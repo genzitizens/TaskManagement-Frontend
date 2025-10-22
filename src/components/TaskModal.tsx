@@ -11,6 +11,13 @@ const taskSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
+  duration: z
+    .string()
+    .trim()
+    .min(1, 'Duration is required')
+    .regex(/^[0-9]+$/, 'Duration must be a whole number')
+    .transform((value) => Number.parseInt(value, 10))
+    .refine((value) => value > 0, { message: 'Duration must be greater than 0' }),
   endAt: z.string().min(1, 'Due date is required'),
   isActivity: z.boolean().optional(),
 });
@@ -19,6 +26,7 @@ interface FormState {
   projectId: string;
   title: string;
   description: string;
+  duration: string;
   endAt: string;
   isActivity: boolean;
   hasNote: boolean;
@@ -36,6 +44,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       projectId: task.projectId,
       title: task.title,
       description: task.description ?? '',
+      duration: task.duration.toString(),
       endAt: formatDateTimeLocal(task.endAt),
       isActivity: toBoolean(task.isActivity),
       hasNote: Boolean(task.note),
@@ -47,6 +56,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
     projectId: projectId ?? '',
     title: '',
     description: '',
+    duration: '',
     endAt: '',
     isActivity: false,
     hasNote: false,
@@ -124,6 +134,7 @@ export default function TaskModal({
       projectId: form.projectId,
       title: form.title.trim(),
       description: form.description.trim() || undefined,
+      duration: form.duration,
       endAt: form.endAt,
       isActivity: form.isActivity,
     });
@@ -134,14 +145,17 @@ export default function TaskModal({
       return;
     }
 
-    const dueDate = dayjs(result.data.endAt);
+    const { endAt, duration, ...rest } = result.data;
+
+    const dueDate = dayjs(endAt);
     if (!dueDate.isValid()) {
       setFormError('Provide a valid due date');
       return;
     }
 
     const payload: TaskCreateInput = {
-      ...result.data,
+      ...rest,
+      duration,
       endAt: dueDate.toISOString(),
     };
 
@@ -250,6 +264,27 @@ export default function TaskModal({
               placeholder="Add more details"
               rows={3}
               maxLength={10000}
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="task-duration-modal">Duration (minutes)</label>
+            <input
+              id="task-duration-modal"
+              name="duration"
+              type="number"
+              min={1}
+              step={1}
+              inputMode="numeric"
+              value={form.duration}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  duration: event.target.value,
+                }))
+              }
+              placeholder="e.g. 30"
+              required
               disabled={submitting}
             />
           </div>
