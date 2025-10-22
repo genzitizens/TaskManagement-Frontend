@@ -301,7 +301,8 @@ export default function ProjectDetailPage() {
                               ) : null}
                               {Number.isFinite(task.duration) ? (
                                 <span className="project-grid__event-description">
-                                  Duration: {task.duration} minutes
+                                  Duration: {task.duration}{' '}
+                                  {task.duration === 1 ? 'day' : 'days'}
                                 </span>
                               ) : null}
                               {task.note?.body ? (

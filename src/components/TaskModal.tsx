@@ -17,7 +17,7 @@ const taskSchema = z.object({
     .min(1, 'Duration is required')
     .regex(/^[0-9]+$/, 'Duration must be a whole number')
     .transform((value) => Number.parseInt(value, 10))
-    .refine((value) => value > 0, { message: 'Duration must be greater than 0' }),
+    .refine((value) => value > 0, { message: 'Duration must be at least 1 day' }),
   endAt: z.string().min(1, 'Due date is required'),
   isActivity: z.boolean().optional(),
 });
@@ -268,7 +268,7 @@ export default function TaskModal({
             />
           </div>
           <div className="field">
-            <label htmlFor="task-duration-modal">Duration (minutes)</label>
+            <label htmlFor="task-duration-modal">Duration (days)</label>
             <input
               id="task-duration-modal"
               name="duration"
@@ -283,7 +283,7 @@ export default function TaskModal({
                   duration: event.target.value,
                 }))
               }
-              placeholder="e.g. 30"
+              placeholder="e.g. 5"
               required
               disabled={submitting}
             />
