@@ -11,11 +11,11 @@ services:
       - NODE_ENV=production
     labels:
       - traefik.enable=true
-      - traefik.http.routers.nextjs-router.rule=Host(`task-management.exeltan.com`)
-      - traefik.http.routers.nextjs-router.entrypoints=websecure
-      - traefik.http.routers.nextjs-router.tls=true
-      - traefik.http.routers.nextjs-router.tls.certresolver=myresolver
-      - traefik.http.services.nextjs-router.loadbalancer.server.port=4001
+      - traefik.http.routers.taskmgmt-router.rule=Host(`task-management.exeltan.com`)
+      - traefik.http.routers.taskmgmt-router.entrypoints=websecure
+      - traefik.http.routers.taskmgmt-router.tls=true
+      - traefik.http.routers.taskmgmt-router.tls.certresolver=myresolver
+      - traefik.http.services.taskmgmt-service.loadbalancer.server.port=80
 networks:
   shared_network:
     external: true
