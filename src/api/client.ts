@@ -1,7 +1,9 @@
 // src/api/client.ts
 const DEFAULT_PAGE_SIZE = Number(import.meta.env.VITE_DEFAULT_PAGE_SIZE ?? '20')
 // Leave base empty for dev proxy OR keep env for non-proxied prod
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? ''
+const API_BASE_URL =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.PROD ? 'https://task.exeltan.com' : '')
 
 export interface RequestOptions extends RequestInit {
   searchParams?: Record<string, string | number | boolean | undefined | null>;
