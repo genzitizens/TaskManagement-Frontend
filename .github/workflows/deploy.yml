@@ -13,29 +13,28 @@ jobs:
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
       GHCR_ORG: ${{ secrets.GHCR_ORG }}
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+  sync-compose:
+    uses: genzitizens/ci-templates/.github/workflows/sync-compose-to-vps.yml@main
+    with:
+      compose-path: infra/docker-compose.yml
+      remote-path: "/home/exeltan/frontend-task-management/docker-compose.yml"
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
 
-#  sync-compose:
-#    uses: genzitizens/ci-templates/.github/workflows/sync-compose-to-vps.yml@main
-#    with:
-#      compose-path: infra/docker-compose.yml
-#      remote-path: "/home/exeltan/frontend-task-management/docker-compose.yml"
-#    secrets:
-#      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-#      VPS_HOST: ${{ secrets.VPS_HOST }}
-#      VPS_USER: ${{ secrets.VPS_USER }}
-#
-#  deploy:
-#    needs: [sync-compose,push-ghcr]
-#    uses: genzitizens/ci-templates/.github/workflows/deploy-to-vps.yml@main
-#    secrets:
-#      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-#      VPS_HOST: ${{ secrets.VPS_HOST }}
-#      VPS_USER: ${{ secrets.VPS_USER }}
-#      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-#      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
-#      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-#      GHCR_ORG: ${{ secrets.GHCR_ORG }}
-#    with:
-#      IMAGE_NAME: "frontend-task-management"
-#      COMPOSE_PATH: "/home/exeltan/frontend-task-management/docker-compose.yml"
-#      RUN_COMPOSE_PULL: true
+  deploy:
+    needs: [sync-compose, push-ghcr]
+    uses: genzitizens/ci-templates/.github/workflows/deploy-to-vps.yml@main
+    secrets:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      GHCR_ORG: ${{ secrets.GHCR_ORG }}
+    with:
+      IMAGE_NAME: "frontend-task-management"
+      COMPOSE_PATH: "/home/exeltan/frontend-task-management/docker-compose.yml"
+      RUN_COMPOSE_PULL: true
