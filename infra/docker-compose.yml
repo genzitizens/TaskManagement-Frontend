@@ -1,7 +1,7 @@
 # PROD Docker compose file for Next.js app
 services:
   task-management-frontend:
-    image: ghcr.io/genzitizens/TaskManagement-Frontend:latest
+    image: ghcr.io/genzitizens/frontend-task-management:latest
     pull_policy: always
     container_name: code4sg-test
     restart: unless-stopped
