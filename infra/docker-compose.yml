@@ -3,7 +3,7 @@ services:
   task-management-frontend:
     image: ghcr.io/genzitizens/frontend-task-management:latest
     pull_policy: always
-    container_name: code4sg-test
+    container_name: frontend-task-management
     restart: unless-stopped
     networks:
       - shared_network
