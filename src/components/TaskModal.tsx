@@ -170,8 +170,8 @@ export default function TaskModal({
     const payload: TaskCreateInput = {
       ...rest,
       duration,
-      startAt: `${startDate.format('YYYY-MM-DD')} 00:00:00`,
-      endAt: `${dueDate.format('YYYY-MM-DD')} 00:00:00`,
+      startAt: startDate.toISOString(),
+      endAt: dueDate.toISOString()    
     };
 
     const trimmedNote = form.note.trim();
