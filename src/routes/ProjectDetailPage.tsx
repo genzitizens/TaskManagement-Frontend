@@ -314,12 +314,12 @@ export default function ProjectDetailPage() {
                               ) : null}
                               {task.startAt ? (
                                 <span className="project-grid__event-description">
-                                  Starts: {dayjs(task.startAt).format('MMM D, YYYY h:mm A')}
+                                  Starts: {dayjs(task.startAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
                               {task.endAt ? (
                                 <span className="project-grid__event-description">
-                                  Due: {dayjs(task.endAt).format('MMM D, YYYY h:mm A')}
+                                  Due: {dayjs(task.endAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
                               {Number.isFinite(task.duration) ? (

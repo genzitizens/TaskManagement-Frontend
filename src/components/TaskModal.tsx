@@ -35,9 +35,9 @@ interface FormState {
   note: string;
 }
 
-const formatDateTimeLocal = (value: string) => {
+const formatDateLocal = (value: string) => {
   const parsed = dayjs(value);
-  return parsed.isValid() ? parsed.format('YYYY-MM-DDTHH:mm') : '';
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : '';
 };
 
 const createInitialState = (projectId?: string, task?: TaskRes | null): FormState => {
@@ -47,8 +47,8 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       title: task.title,
       description: task.description ?? '',
       duration: task.duration.toString(),
-      startAt: formatDateTimeLocal(task.startAt),
-      endAt: formatDateTimeLocal(task.endAt),
+      startAt: formatDateLocal(task.startAt),
+      endAt: formatDateLocal(task.endAt),
       isActivity: toBoolean(task.isActivity),
       hasNote: Boolean(task.note),
       note: task.note?.body ?? '',
@@ -152,8 +152,8 @@ export default function TaskModal({
 
     const { startAt, endAt, duration, ...rest } = result.data;
 
-    const startDate = dayjs(startAt);
-    const dueDate = dayjs(endAt);
+    const startDate = dayjs(startAt).startOf('day');
+    const dueDate = dayjs(endAt).startOf('day');
     if (!startDate.isValid()) {
       setFormError('Provide a valid start date');
       return;
@@ -170,8 +170,8 @@ export default function TaskModal({
     const payload: TaskCreateInput = {
       ...rest,
       duration,
-      startAt: startDate.toISOString(),
-      endAt: dueDate.toISOString(),
+      startAt: `${startDate.format('YYYY-MM-DD')} 00:00:00`,
+      endAt: `${dueDate.format('YYYY-MM-DD')} 00:00:00`,
     };
 
     const trimmedNote = form.note.trim();
@@ -308,7 +308,7 @@ export default function TaskModal({
             <input
               id="task-start-modal"
               name="startAt"
-              type="datetime-local"
+              type="date"
               value={form.startAt}
               onChange={(event) =>
                 setForm((prev) => ({
@@ -325,7 +325,7 @@ export default function TaskModal({
             <input
               id="task-end-modal"
               name="endAt"
-              type="datetime-local"
+              type="date"
               value={form.endAt}
               onChange={(event) =>
                 setForm((prev) => ({
