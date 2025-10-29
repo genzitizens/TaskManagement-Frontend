@@ -399,6 +399,11 @@ button:disabled {
   font-size: 1rem;
 }
 
+.project-detail__description--meta {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
 .project-detail__events {
   display: flex;
   flex-direction: column;

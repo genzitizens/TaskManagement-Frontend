@@ -116,12 +116,20 @@ export default function ProjectDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const projectStart = useMemo(() => {
-    if (!project) {
+    if (!project?.startDate) {
       return null;
     }
-    const parsed = dayjs(project.createdAt);
+    const parsed = dayjs(project.startDate);
     return parsed.isValid() ? parsed.startOf('day') : null;
-  }, [project]);
+  }, [project?.startDate]);
+
+  const projectStartLabel = useMemo(() => {
+    if (!project?.startDate) {
+      return null;
+    }
+    const parsed = dayjs(project.startDate);
+    return parsed.isValid() ? parsed.format('MMMM D, YYYY') : null;
+  }, [project?.startDate]);
 
   const { columnCount, taskDueDay } = useMemo(() => {
     if (!projectStart) {
@@ -259,6 +267,11 @@ export default function ProjectDetailPage() {
       {project && project.description ? (
         <p className="project-detail__description">{project.description}</p>
       ) : null}
+      {projectStartLabel ? (
+        <p className="project-detail__description project-detail__description--meta">
+          Project start date: {projectStartLabel}
+        </p>
+      ) : null}
 
       <section className="project-detail__events">
         <header className="project-detail__events-header">
@@ -298,6 +311,16 @@ export default function ProjectDetailPage() {
                               <span className="project-grid__event-name">{task.title}</span>
                               {task.description ? (
                                 <span className="project-grid__event-description">{task.description}</span>
+                              ) : null}
+                              {task.startAt ? (
+                                <span className="project-grid__event-description">
+                                  Starts: {dayjs(task.startAt).format('MMM D, YYYY h:mm A')}
+                                </span>
+                              ) : null}
+                              {task.endAt ? (
+                                <span className="project-grid__event-description">
+                                  Due: {dayjs(task.endAt).format('MMM D, YYYY h:mm A')}
+                                </span>
                               ) : null}
                               {Number.isFinite(task.duration) ? (
                                 <span className="project-grid__event-description">
