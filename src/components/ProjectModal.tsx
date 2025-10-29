@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
@@ -7,11 +8,13 @@ type ProjectModalMode = 'create' | 'edit';
 type FormState = {
   name: string;
   description: string;
+  startDate: string;
 };
 
 const createInitialState = (): FormState => ({
   name: '',
   description: '',
+  startDate: dayjs().format('YYYY-MM-DD'),
 });
 
 const projectSchema = z.object({
@@ -20,6 +23,12 @@ const projectSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
+  startDate: z
+    .string()
+    .min(1, 'Start date is required')
+    .refine((value) => dayjs(value, 'YYYY-MM-DD', true).isValid(), {
+      message: 'Provide a valid start date',
+    }),
 });
 
 export interface ProjectModalProps {
@@ -53,6 +62,7 @@ export default function ProjectModal({
       setForm({
         name: project.name,
         description: project.description ?? '',
+        startDate: project.startDate ?? dayjs(project.createdAt).format('YYYY-MM-DD'),
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());
@@ -62,7 +72,15 @@ export default function ProjectModal({
       setDeleteError(null);
       setShowDeleteConfirm(false);
     }
-  }, [isOpen, mode, project?.id, project?.name, project?.description]);
+  }, [
+    isOpen,
+    mode,
+    project?.id,
+    project?.name,
+    project?.description,
+    project?.startDate,
+    project?.createdAt,
+  ]);
 
   const submitLabel = useMemo(() => {
     if (submitting) {
@@ -78,6 +96,7 @@ export default function ProjectModal({
     const result = projectSchema.safeParse({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
+      startDate: form.startDate,
     });
 
     if (!result.success) {
@@ -181,11 +200,11 @@ export default function ProjectModal({
                 disabled={submitting}
               />
             </div>
-            <div className="field">
-              <label htmlFor="project-description-modal">Description</label>
-              <textarea
-                id="project-description-modal"
-                name="description"
+          <div className="field">
+            <label htmlFor="project-description-modal">Description</label>
+            <textarea
+              id="project-description-modal"
+              name="description"
                 value={form.description}
                 onChange={(event) =>
                   setForm((prev) => ({
@@ -196,6 +215,23 @@ export default function ProjectModal({
                 placeholder="What are we delivering?"
                 maxLength={10000}
                 rows={3}
+                disabled={submitting}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="project-start-date-modal">Start date</label>
+              <input
+                id="project-start-date-modal"
+                name="startDate"
+                type="date"
+                value={form.startDate}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    startDate: event.target.value,
+                  }))
+                }
+                required
                 disabled={submitting}
               />
             </div>

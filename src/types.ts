@@ -2,6 +2,7 @@ export interface ProjectRes {
   id: string;
   name: string;
   description?: string;
+  startDate: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -13,6 +14,7 @@ export interface TaskRes {
   description?: string;
   isActivity?: boolean;
   duration: number;
+  startAt: string;
   endAt: string;
   createdAt: string;
   updatedAt: string;
@@ -36,16 +38,19 @@ export interface Page<T> {
   numberOfElements: number;
 }
 
-export interface ProjectCreateInput {
+interface ProjectBaseInput {
   name: string;
   /**
    * Some API flows still expect a `title` field. Mirror the project name to preserve compatibility.
    */
   title?: string;
   description?: string;
+  startDate: string;
 }
 
-export interface ProjectUpdateInput extends ProjectCreateInput {
+export interface ProjectCreateInput extends ProjectBaseInput {}
+
+export interface ProjectUpdateInput extends Partial<ProjectBaseInput> {
   updatedAt?: string;
 }
 
@@ -55,6 +60,7 @@ export interface TaskCreateInput {
   description?: string;
   isActivity?: boolean;
   duration: number;
+  startAt: string;
   endAt: string;
 }
 

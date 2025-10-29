@@ -18,6 +18,7 @@ const taskSchema = z.object({
     .regex(/^[0-9]+$/, 'Duration must be a whole number')
     .transform((value) => Number.parseInt(value, 10))
     .refine((value) => value > 0, { message: 'Duration must be at least 1 day' }),
+  startAt: z.string().min(1, 'Start date is required'),
   endAt: z.string().min(1, 'Due date is required'),
   isActivity: z.boolean().optional(),
 });
@@ -27,6 +28,7 @@ interface FormState {
   title: string;
   description: string;
   duration: string;
+  startAt: string;
   endAt: string;
   isActivity: boolean;
   hasNote: boolean;
@@ -45,6 +47,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       title: task.title,
       description: task.description ?? '',
       duration: task.duration.toString(),
+      startAt: formatDateTimeLocal(task.startAt),
       endAt: formatDateTimeLocal(task.endAt),
       isActivity: toBoolean(task.isActivity),
       hasNote: Boolean(task.note),
@@ -57,6 +60,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
     title: '',
     description: '',
     duration: '',
+    startAt: '',
     endAt: '',
     isActivity: false,
     hasNote: false,
@@ -135,6 +139,7 @@ export default function TaskModal({
       title: form.title.trim(),
       description: form.description.trim() || undefined,
       duration: form.duration,
+      startAt: form.startAt,
       endAt: form.endAt,
       isActivity: form.isActivity,
     });
@@ -145,17 +150,27 @@ export default function TaskModal({
       return;
     }
 
-    const { endAt, duration, ...rest } = result.data;
+    const { startAt, endAt, duration, ...rest } = result.data;
 
+    const startDate = dayjs(startAt);
     const dueDate = dayjs(endAt);
+    if (!startDate.isValid()) {
+      setFormError('Provide a valid start date');
+      return;
+    }
     if (!dueDate.isValid()) {
       setFormError('Provide a valid due date');
+      return;
+    }
+    if (dueDate.isBefore(startDate)) {
+      setFormError('Due date must be after the start date');
       return;
     }
 
     const payload: TaskCreateInput = {
       ...rest,
       duration,
+      startAt: startDate.toISOString(),
       endAt: dueDate.toISOString(),
     };
 
@@ -284,6 +299,23 @@ export default function TaskModal({
                 }))
               }
               placeholder="e.g. 5"
+              required
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="task-start-modal">Start</label>
+            <input
+              id="task-start-modal"
+              name="startAt"
+              type="datetime-local"
+              value={form.startAt}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  startAt: event.target.value,
+                }))
+              }
               required
               disabled={submitting}
             />
