@@ -131,27 +131,44 @@ export default function ProjectDetailPage() {
     return parsed.isValid() ? parsed.format('MMMM D, YYYY') : null;
   }, [project?.startDate]);
 
-  const { columnCount, taskDueDay } = useMemo(() => {
+  const { columnCount, taskRanges } = useMemo(() => {
     if (!projectStart) {
-      return { columnCount: MINIMUM_DAY_COLUMNS, taskDueDay: new Map<string, number>() };
+      return {
+        columnCount: MINIMUM_DAY_COLUMNS,
+        taskRanges: new Map<string, { start: number; end: number }>(),
+      };
     }
 
     let maxDay = MINIMUM_DAY_COLUMNS;
-    const dueMap = new Map<string, number>();
+    const rangeMap = new Map<string, { start: number; end: number }>();
 
     tasks.forEach((task: TaskRes) => {
-      const dueDate = dayjs(task.endAt);
-      if (!dueDate.isValid()) {
+      const endDate = dayjs(task.endAt);
+      if (!endDate.isValid()) {
         return;
       }
-      const dayOffset = Math.max(1, dueDate.startOf('day').diff(projectStart, 'day') + 1);
-      dueMap.set(task.id, dayOffset);
-      if (dayOffset > maxDay) {
-        maxDay = dayOffset;
+
+      // Calculate the end day relative to the project start (inclusive of the last day).
+      const endDay = Math.max(1, endDate.startOf('day').diff(projectStart, 'day') + 1);
+
+      let startDay = 1;
+      if (task.startAt) {
+        const startDate = dayjs(task.startAt);
+        if (startDate.isValid()) {
+          startDay = Math.max(1, startDate.startOf('day').diff(projectStart, 'day') + 1);
+        }
+      }
+
+      // Ensure the range never extends past the end date even if start/end are flipped.
+      const clampedStart = Math.min(startDay, endDay);
+
+      rangeMap.set(task.id, { start: clampedStart, end: endDay });
+      if (endDay > maxDay) {
+        maxDay = endDay;
       }
     });
 
-    return { columnCount: maxDay, taskDueDay: dueMap };
+    return { columnCount: maxDay, taskRanges: rangeMap };
   }, [projectStart, tasks]);
 
   const dayColumns = useMemo(
@@ -276,7 +293,10 @@ export default function ProjectDetailPage() {
       <section className="project-detail__events">
         <header className="project-detail__events-header">
           <h3>Project timeline</h3>
-          <p>Scroll horizontally to explore the timeline. The highlighted cell marks each event.</p>
+          <p>
+            Scroll horizontally to explore the timeline. Highlighted bars show when each event
+            starts and ends.
+          </p>
         </header>
         {tasksLoading ? <p>Loading events…</p> : null}
         {tasksError ? (
@@ -302,7 +322,7 @@ export default function ProjectDetailPage() {
               {tasks.length ? (
                 <tbody>
                   {tasks.map((task: TaskRes) => {
-                    const dueDay = taskDueDay.get(task.id);
+                    const range = taskRanges.get(task.id);
                     return (
                       <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
@@ -353,13 +373,28 @@ export default function ProjectDetailPage() {
                           </div>
                         </th>
                         {dayColumns.map((dayNumber) => {
-                          const isDueDay = typeof dueDay === 'number' && dueDay === dayNumber;
+                          // Highlight every column within the task's active window.
+                          const isWithinRange =
+                            !!range && dayNumber >= range.start && dayNumber <= range.end;
+                          const isStart = isWithinRange && range ? dayNumber === range.start : false;
+                          const isEnd = isWithinRange && range ? dayNumber === range.end : false;
                           return (
                             <td
                               key={dayNumber}
-                              className={`project-grid__cell${isDueDay ? ' project-grid__cell--active' : ''}`}
+                              className={`project-grid__cell${
+                                isWithinRange ? ' project-grid__cell--in-range' : ''
+                              }${isStart ? ' project-grid__cell--range-start' : ''}${
+                                isEnd ? ' project-grid__cell--range-end' : ''
+                              }`}
                             >
-                              {isDueDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
+                              {isWithinRange ? (
+                                <span
+                                  className={`project-grid__range${
+                                    isStart ? ' project-grid__range--start' : ''
+                                  }${isEnd ? ' project-grid__range--end' : ''}`}
+                                  aria-hidden="true"
+                                />
+                              ) : null}
                             </td>
                           );
                         })}
