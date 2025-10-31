@@ -573,19 +573,42 @@ button:disabled {
 .project-grid__cell {
   text-align: center;
   background: #fff;
+  position: relative;
 }
 
-.project-grid__cell--active {
-  background: #dbeafe;
+.project-grid__cell--in-range {
+  background: #eff6ff;
 }
 
-.project-grid__marker {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 9999px;
+.project-grid__cell--range-start {
+  /* Leave extra room for the rounded leading edge of the bar. */
+  --project-grid-range-padding-start: 6px;
+}
+
+.project-grid__cell--range-end {
+  /* Leave extra room for the rounded trailing edge of the bar. */
+  --project-grid-range-padding-end: 6px;
+}
+
+.project-grid__range {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: var(--project-grid-range-padding-start, 2px);
+  right: var(--project-grid-range-padding-end, 2px);
+  height: 0.65rem;
+  border-radius: 0;
   background: #2563eb;
-  display: inline-block;
-  margin: 0 auto;
+}
+
+.project-grid__range--start {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+}
+
+.project-grid__range--end {
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
 }
 
 .project-detail__empty {
