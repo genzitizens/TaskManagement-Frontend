@@ -267,16 +267,13 @@ export default function ProjectDetailPage() {
       {project && project.description ? (
         <p className="project-detail__description">{project.description}</p>
       ) : null}
-      {projectStartLabel ? (
-        <p className="project-detail__description project-detail__description--meta">
-          Project start date: {projectStartLabel}
-        </p>
-      ) : null}
-
       <section className="project-detail__events">
         <header className="project-detail__events-header">
           <h3>Project timeline</h3>
           <p>Scroll horizontally to explore the timeline. The highlighted cell marks each event.</p>
+          {projectStartLabel ? (
+            <p className="project-detail__events-meta">Project start date: {projectStartLabel}</p>
+          ) : null}
         </header>
         {tasksLoading ? <p>Loading events…</p> : null}
         {tasksError ? (
