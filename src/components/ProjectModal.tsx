@@ -1,11 +1,28 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
 type ProjectModalMode = 'create' | 'edit';
 
-const API_START_DATE_FORMAT = 'MM-DD-YYYY';
+dayjs.extend(customParseFormat);
+
+const API_START_DATE_FORMAT = 'DD-MM-YYYY';
+
+const parseStartDate = (value: string) => {
+  const isoParsed = dayjs(value);
+  if (isoParsed.isValid()) {
+    return isoParsed;
+  }
+
+  const apiParsed = dayjs(value, API_START_DATE_FORMAT, true);
+  if (apiParsed.isValid()) {
+    return apiParsed;
+  }
+
+  return null;
+};
 
 type FormState = {
   name: string;
@@ -61,7 +78,7 @@ export default function ProjectModal({
 
   useEffect(() => {
     if (isOpen && mode === 'edit' && project) {
-      const parsedStartDate = project.startDate ? dayjs(project.startDate) : null;
+      const parsedStartDate = project.startDate ? parseStartDate(project.startDate) : null;
       setForm({
         name: project.name,
         description: project.description ?? '',
