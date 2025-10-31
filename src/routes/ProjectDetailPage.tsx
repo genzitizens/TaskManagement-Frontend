@@ -128,8 +128,15 @@ export default function ProjectDetailPage() {
       return null;
     }
     const parsed = dayjs(project.startDate);
-    return parsed.isValid() ? parsed.format('MMMM D, YYYY') : null;
+    if (!parsed.isValid()) {
+      return project.startDate;
+    }
+    return parsed.format('MMMM D, YYYY');
   }, [project?.startDate]);
+
+  const projectStartDateTime = projectStart
+    ? projectStart.toISOString()
+    : project?.startDate ?? undefined;
 
   const { columnCount, taskDueDay } = useMemo(() => {
     if (!projectStart) {
@@ -260,6 +267,12 @@ export default function ProjectDetailPage() {
         <div>
           <h2 className="project-detail__title">{projectTitle}</h2>
           {projectError ? <p className="error-message">{projectDescription}</p> : null}
+          {projectStartLabel ? (
+            <p className="project-detail__description project-detail__description--meta">
+              Project start date:{' '}
+              <time dateTime={projectStartDateTime}>{projectStartLabel}</time>
+            </p>
+          ) : null}
         </div>
 
       </div>
@@ -267,16 +280,16 @@ export default function ProjectDetailPage() {
       {project && project.description ? (
         <p className="project-detail__description">{project.description}</p>
       ) : null}
-      {projectStartLabel ? (
-        <p className="project-detail__description project-detail__description--meta">
-          Project start date: {projectStartLabel}
-        </p>
-      ) : null}
-
       <section className="project-detail__events">
         <header className="project-detail__events-header">
           <h3>Project timeline</h3>
           <p>Scroll horizontally to explore the timeline. The highlighted cell marks each event.</p>
+          {projectStartLabel ? (
+            <p className="project-detail__events-meta">
+              Project start date:{' '}
+              <time dateTime={projectStartDateTime}>{projectStartLabel}</time>
+            </p>
+          ) : null}
         </header>
         {tasksLoading ? <p>Loading events…</p> : null}
         {tasksError ? (

@@ -426,6 +426,10 @@ button:disabled {
   font-size: 0.95rem;
 }
 
+.project-detail__events-meta {
+  font-weight: 600;
+}
+
 .project-grid {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
