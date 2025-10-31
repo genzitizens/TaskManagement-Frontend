@@ -167,11 +167,31 @@ export default function TaskModal({
       return;
     }
 
+    const selectedProject = projects.find((project) => project.id === rest.projectId);
+    if (!selectedProject) {
+      setFormError('Select a project');
+      return;
+    }
+
+    const projectStartDate = dayjs(selectedProject.startDate).startOf('day');
+    if (!projectStartDate.isValid()) {
+      setFormError('Selected project has an invalid start date');
+      return;
+    }
+
+    const computedStartDay = Math.max(1, startDate.diff(projectStartDate, 'day') + 1);
+    const computedEndDay = Math.max(
+      computedStartDay,
+      dueDate.diff(projectStartDate, 'day') + 1,
+    );
+
     const payload: TaskCreateInput = {
       ...rest,
       duration,
       startAt: startDate.toISOString(),
-      endAt: dueDate.toISOString()    
+      endAt: dueDate.toISOString(),
+      startDay: computedStartDay,
+      endDay: computedEndDay,
     };
 
     const trimmedNote = form.note.trim();
