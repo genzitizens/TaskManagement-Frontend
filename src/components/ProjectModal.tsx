@@ -59,10 +59,13 @@ export default function ProjectModal({
 
   useEffect(() => {
     if (isOpen && mode === 'edit' && project) {
+      const parsedStartDate = project.startDate ? dayjs(project.startDate) : null;
       setForm({
         name: project.name,
         description: project.description ?? '',
-        startDate: project.startDate ?? dayjs(project.createdAt).format('YYYY-MM-DD'),
+        startDate: parsedStartDate?.isValid()
+          ? parsedStartDate.format('YYYY-MM-DD')
+          : dayjs(project.createdAt).format('YYYY-MM-DD'),
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());
@@ -107,6 +110,7 @@ export default function ProjectModal({
 
     const payload: ProjectCreateInput = {
       ...result.data,
+      startDate: dayjs(result.data.startDate).format('MM/DD/YYYY'),
       title: result.data.name,
     };
 
