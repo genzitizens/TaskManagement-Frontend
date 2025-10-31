@@ -5,6 +5,8 @@ import type { ProjectCreateInput, ProjectRes } from '../types';
 
 type ProjectModalMode = 'create' | 'edit';
 
+const API_START_DATE_FORMAT = 'MM-DD-YYYY';
+
 type FormState = {
   name: string;
   description: string;
@@ -110,7 +112,7 @@ export default function ProjectModal({
 
     const payload: ProjectCreateInput = {
       ...result.data,
-      startDate: dayjs(result.data.startDate).format('MM/DD/YYYY'),
+      startDate: dayjs(result.data.startDate).format(API_START_DATE_FORMAT),
       title: result.data.name,
     };
 
