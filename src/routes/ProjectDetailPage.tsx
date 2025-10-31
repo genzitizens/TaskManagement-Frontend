@@ -131,27 +131,57 @@ export default function ProjectDetailPage() {
     return parsed.isValid() ? parsed.format('MMMM D, YYYY') : null;
   }, [project?.startDate]);
 
-  const { columnCount, taskDueDay } = useMemo(() => {
+  const { columnCount, taskDayRange } = useMemo(() => {
     if (!projectStart) {
-      return { columnCount: MINIMUM_DAY_COLUMNS, taskDueDay: new Map<string, number>() };
+      return {
+        columnCount: MINIMUM_DAY_COLUMNS,
+        taskDayRange: new Map<string, { start: number; end: number }>(),
+      };
     }
 
     let maxDay = MINIMUM_DAY_COLUMNS;
-    const dueMap = new Map<string, number>();
+    const rangeMap = new Map<string, { start: number; end: number }>();
 
     tasks.forEach((task: TaskRes) => {
-      const dueDate = dayjs(task.endAt);
-      if (!dueDate.isValid()) {
+      const hasStartDay = typeof task.startDay === 'number' && Number.isFinite(task.startDay);
+      const hasEndDay = typeof task.endDay === 'number' && Number.isFinite(task.endDay);
+
+      let startDayValue = hasStartDay ? Math.floor(task.startDay as number) : undefined;
+      let endDayValue = hasEndDay ? Math.floor(task.endDay as number) : undefined;
+
+      if (startDayValue === undefined || endDayValue === undefined) {
+        const startDate = dayjs(task.startAt);
+        const dueDate = dayjs(task.endAt);
+        if (!startDate.isValid() || !dueDate.isValid()) {
+          return;
+        }
+        const normalizedStart = Math.max(
+          1,
+          startDate.startOf('day').diff(projectStart, 'day') + 1,
+        );
+        const normalizedEnd = Math.max(
+          normalizedStart,
+          dueDate.startOf('day').diff(projectStart, 'day') + 1,
+        );
+        startDayValue = normalizedStart;
+        endDayValue = normalizedEnd;
+      }
+
+      if (startDayValue === undefined || endDayValue === undefined) {
         return;
       }
-      const dayOffset = Math.max(1, dueDate.startOf('day').diff(projectStart, 'day') + 1);
-      dueMap.set(task.id, dayOffset);
-      if (dayOffset > maxDay) {
-        maxDay = dayOffset;
+
+      const clampedStart = Math.max(1, startDayValue);
+      const clampedEnd = Math.max(clampedStart, endDayValue);
+
+      rangeMap.set(task.id, { start: clampedStart, end: clampedEnd });
+
+      if (clampedEnd > maxDay) {
+        maxDay = clampedEnd;
       }
     });
 
-    return { columnCount: maxDay, taskDueDay: dueMap };
+    return { columnCount: maxDay, taskDayRange: rangeMap };
   }, [projectStart, tasks]);
 
   const dayColumns = useMemo(
@@ -302,7 +332,7 @@ export default function ProjectDetailPage() {
               {tasks.length ? (
                 <tbody>
                   {tasks.map((task: TaskRes) => {
-                    const dueDay = taskDueDay.get(task.id);
+                    const dayRange = taskDayRange.get(task.id);
                     return (
                       <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
@@ -320,6 +350,16 @@ export default function ProjectDetailPage() {
                               {task.endAt ? (
                                 <span className="project-grid__event-description">
                                   Due: {dayjs(task.endAt).format('MMM D, YYYY')}
+                                </span>
+                              ) : null}
+                              {typeof task.startDay === 'number' && Number.isFinite(task.startDay) ? (
+                                <span className="project-grid__event-description">
+                                  Start day: {task.startDay}
+                                </span>
+                              ) : null}
+                              {typeof task.endDay === 'number' && Number.isFinite(task.endDay) ? (
+                                <span className="project-grid__event-description">
+                                  End day: {task.endDay}
                                 </span>
                               ) : null}
                               {Number.isFinite(task.duration) ? (
@@ -353,11 +393,18 @@ export default function ProjectDetailPage() {
                           </div>
                         </th>
                         {dayColumns.map((dayNumber) => {
-                          const isDueDay = typeof dueDay === 'number' && dueDay === dayNumber;
+                          const isActiveDay =
+                            dayRange !== undefined &&
+                            dayNumber >= dayRange.start &&
+                            dayNumber <= dayRange.end;
+                          const isDueDay =
+                            dayRange !== undefined && dayNumber === dayRange.end;
                           return (
                             <td
                               key={dayNumber}
-                              className={`project-grid__cell${isDueDay ? ' project-grid__cell--active' : ''}`}
+                              className={`project-grid__cell${
+                                isActiveDay ? ' project-grid__cell--active' : ''
+                              }`}
                             >
                               {isDueDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
                             </td>

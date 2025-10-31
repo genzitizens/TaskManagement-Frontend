@@ -16,6 +16,8 @@ export interface TaskRes {
   duration: number;
   startAt: string;
   endAt: string;
+  startDay?: number;
+  endDay?: number;
   createdAt: string;
   updatedAt: string;
   note?: NoteRes | null;
@@ -62,6 +64,8 @@ export interface TaskCreateInput {
   duration: number;
   startAt: string;
   endAt: string;
+  startDay: number;
+  endDay: number;
 }
 
 export type TaskUpdateInput = TaskCreateInput;
