@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useProjects } from '../hooks/useProjects';
 import ProjectModal from '../components/ProjectModal';
+import DeleteProjectModal from '../components/DeleteProjectModal';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
 dayjs.extend(relativeTime);
@@ -26,6 +27,9 @@ export default function MenuPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<ProjectRes | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ProjectRes | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const openCreateModal = () => {
     setActiveProject(null);
@@ -40,6 +44,18 @@ export default function MenuPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setActiveProject(null);
+  };
+
+  const openDeleteModal = (project: ProjectRes) => {
+    setDeleteError(null);
+    setDeleteTarget(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeleteTarget(null);
+    setDeleteError(null);
   };
 
   const handleSubmit = async (input: ProjectCreateInput) => {
@@ -59,6 +75,20 @@ export default function MenuPage() {
   const handleDelete = async (project: ProjectRes) => {
     await deleteProject(project.id);
     closeModal();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    try {
+      setDeleteError(null);
+      await deleteProject(deleteTarget.id);
+      closeDeleteModal();
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Failed to delete project');
+    }
   };
 
   const handleShowProject = (project: ProjectRes) => {
@@ -104,6 +134,9 @@ export default function MenuPage() {
               <button type="button" className="button-secondary" onClick={() => handleShowProject(project)}>
                 View
               </button>
+              <button type="button" className="button-danger" onClick={() => openDeleteModal(project)}>
+                Delete
+              </button>
             </div>
           </article>
         ))}
@@ -118,6 +151,14 @@ export default function MenuPage() {
         onDelete={activeProject ? handleDelete : undefined}
         deleting={deleting}
         onClose={closeModal}
+      />
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        project={deleteTarget}
+        submitting={deleting}
+        error={deleteError}
+        onCancel={closeDeleteModal}
+        onConfirm={handleDeleteConfirm}
       />
     </div>
   );
