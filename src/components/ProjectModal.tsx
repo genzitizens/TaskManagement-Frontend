@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
+import DeleteProjectModal from './DeleteProjectModal';
 
 type ProjectModalMode = 'create' | 'edit';
 
@@ -288,80 +289,5 @@ export default function ProjectModal({
         />
       ) : null}
     </>
-  );
-}
-
-interface DeleteProjectModalProps {
-  isOpen: boolean;
-  project: ProjectRes | null;
-  submitting: boolean;
-  error: string | null;
-  onCancel: () => void;
-  onConfirm: () => Promise<void>;
-}
-
-function DeleteProjectModal({
-  isOpen,
-  project,
-  submitting,
-  error,
-  onCancel,
-  onConfirm,
-}: DeleteProjectModalProps) {
-  if (!isOpen || !project) {
-    return null;
-  }
-
-  const handleBackdropClick = () => {
-    if (submitting) {
-      return;
-    }
-    onCancel();
-  };
-
-  return (
-    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-project-modal-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="modal-header">
-          <h3 id="delete-project-modal-title">Delete project</h3>
-          <button
-            type="button"
-            className="modal-close"
-            onClick={onCancel}
-            aria-label="Close delete confirmation"
-            disabled={submitting}
-          >
-            ×
-          </button>
-        </div>
-        <div>
-          <p>
-            Are you sure you want to delete <strong>{project.name}</strong>? This action cannot be undone.
-          </p>
-          {error ? <p className="error-message">{error}</p> : null}
-        </div>
-        <div className="modal-actions">
-          <button type="button" onClick={onCancel} disabled={submitting}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="button-danger"
-            onClick={() => {
-              void onConfirm();
-            }}
-            disabled={submitting}
-          >
-            {submitting ? 'Deleting…' : 'Delete project'}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
