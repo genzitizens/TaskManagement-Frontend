@@ -120,7 +120,11 @@ export default function MenuPage() {
           <article key={project.id} className="menu-card">
             <header className="menu-card-header">
               <h3>{project.name}</h3>
-              <p className="menu-card-meta">Updated {dayjs(project.updatedAt).fromNow()}</p>
+              <p className="menu-card-meta">
+                Started {dayjs(project.startDate).format('MMM D, YYYY')}
+                <span aria-hidden="true"> • </span>
+                Updated {dayjs(project.updatedAt).fromNow()}
+              </p>
             </header>
             {project.description ? (
               <p className="menu-card-description">{project.description}</p>
