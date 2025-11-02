@@ -596,9 +596,9 @@ button:disabled {
 
 .project-grid__note-popover {
   position: absolute;
-  top: calc(100% + 0.35rem);
+  bottom: calc(100% + 0.35rem);
   left: 50%;
-  transform: translate(-50%, -0.35rem);
+  transform: translate(-50%, 0.35rem);
   background: #0f172a;
   color: #f8fafc;
   padding: 0.35rem 0.5rem;
