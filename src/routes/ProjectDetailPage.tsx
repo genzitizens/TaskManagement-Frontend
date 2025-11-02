@@ -1,13 +1,10 @@
 import {
-  useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useState,
   type CSSProperties,
   type SVGProps,
 } from 'react';
-import { createPortal } from 'react-dom';
 import dayjs from 'dayjs';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
@@ -68,29 +65,6 @@ export default function ProjectDetailPage() {
 
   const tasks: TaskRes[] = tasksData?.content ?? [];
   const [taskNotes, setTaskNotes] = useState<Record<string, TaskNoteCacheEntry>>({});
-  const [activeNoteTooltip, setActiveNoteTooltip] = useState<{
-    body: string;
-    anchor: HTMLElement;
-  } | null>(null);
-
-  const handleShowNoteTooltip = useCallback((body: string, anchor: HTMLElement) => {
-    setActiveNoteTooltip({ body, anchor });
-  }, []);
-
-  const handleHideNoteTooltip = useCallback(() => {
-    setActiveNoteTooltip(null);
-  }, []);
-
-  useEffect(() => {
-    if (!activeNoteTooltip || typeof document === 'undefined') {
-      return;
-    }
-
-    if (!document.body.contains(activeNoteTooltip.anchor)) {
-      setActiveNoteTooltip(null);
-    }
-  }, [activeNoteTooltip]);
-
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
     [selectedTaskId, tasks],
@@ -574,28 +548,10 @@ export default function ProjectDetailPage() {
                           ]
                             .filter(Boolean)
                             .join(' ');
-                          const cellAccessibilityProps = shouldShowNote
-                            ? { tabIndex: 0, 'aria-label': `Task note: ${noteBody}` }
-                            : {};
                           return (
                             <td
                               key={dayNumber}
                               className={cellClassName}
-                              onMouseEnter={
-                                shouldShowNote
-                                  ? (event) =>
-                                      handleShowNoteTooltip(noteBody, event.currentTarget)
-                                  : undefined
-                              }
-                              onMouseLeave={shouldShowNote ? handleHideNoteTooltip : undefined}
-                              onFocus={
-                                shouldShowNote
-                                  ? (event) =>
-                                      handleShowNoteTooltip(noteBody, event.currentTarget)
-                                  : undefined
-                              }
-                              onBlur={shouldShowNote ? handleHideNoteTooltip : undefined}
-                              {...cellAccessibilityProps}
                             >
                               {isEndDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
                             </td>
@@ -609,13 +565,6 @@ export default function ProjectDetailPage() {
             </table>
           </div>
         </div>
-        {activeNoteTooltip ? (
-          <ProjectGridNotePopover
-            note={activeNoteTooltip.body}
-            anchor={activeNoteTooltip.anchor}
-            onRequestClose={handleHideNoteTooltip}
-          />
-        ) : null}
         {!tasks.length && !tasksLoading ? (
           <p className="project-detail__empty">No events yet. Use Add Event to create one.</p>
         ) : null}
@@ -728,65 +677,6 @@ function DeleteTaskModal({
         </div>
       </div>
     </div>
-  );
-}
-
-interface ProjectGridNotePopoverProps {
-  note: string;
-  anchor: HTMLElement;
-  onRequestClose: () => void;
-}
-
-function ProjectGridNotePopover({ note, anchor, onRequestClose }: ProjectGridNotePopoverProps) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
-
-  useLayoutEffect(() => {
-    if (typeof document === 'undefined') {
-      return undefined;
-    }
-
-    let frame = 0;
-
-    const updatePosition = () => {
-      if (!document.body.contains(anchor)) {
-        onRequestClose();
-        return;
-      }
-
-      const rect = anchor.getBoundingClientRect();
-      setPosition({ top: rect.top, left: rect.left + rect.width / 2 });
-    };
-
-    updatePosition();
-
-    const handleScrollOrResize = () => {
-      cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(updatePosition);
-    };
-
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
-    };
-  }, [anchor, onRequestClose]);
-
-  if (typeof document === 'undefined' || position === null) {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      className="project-grid__note-popover project-grid__note-popover--floating"
-      style={{ top: position.top, left: position.left }}
-      role="tooltip"
-    >
-      {note}
-    </div>,
-    document.body,
   );
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProjectDetailPage from './ProjectDetailPage';
 import type { TaskRes } from '../types';
@@ -57,7 +57,7 @@ describe('ProjectDetailPage', () => {
     mockedUseProject.mockReturnValue(projectResponse);
   });
 
-  it('renders tooltip content for tasks with notes fetched separately', async () => {
+  it('renders note content for tasks with notes fetched separately', async () => {
     const task: TaskRes = {
       id: 'task-1',
       projectId: 'project-1',
@@ -99,12 +99,6 @@ describe('ProjectDetailPage', () => {
 
     await screen.findByText('Note: Fetched note body');
 
-    const cells = await screen.findAllByRole('cell', { name: 'Task note: Fetched note body' });
-    fireEvent.focus(cells[0]);
-
-    await waitFor(() => {
-      const popover = document.querySelector('.project-grid__note-popover');
-      expect(popover?.textContent).toContain('Fetched note body');
-    });
+    expect(document.querySelector('.project-grid__note-popover')).toBeNull();
   });
 });
