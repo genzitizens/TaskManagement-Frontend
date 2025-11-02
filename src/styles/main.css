@@ -585,7 +585,6 @@ button:disabled {
 }
 
 .project-grid__cell--with-note {
-  position: relative;
   cursor: help;
 }
 
@@ -595,10 +594,6 @@ button:disabled {
 }
 
 .project-grid__note-popover {
-  position: absolute;
-  bottom: calc(100% + 0.35rem);
-  left: 50%;
-  transform: translate(-50%, 0.35rem);
   background: #0f172a;
   color: #f8fafc;
   padding: 0.35rem 0.5rem;
@@ -608,19 +603,25 @@ button:disabled {
   line-height: 1.25;
   max-width: 18rem;
   text-align: left;
-  opacity: 0;
-  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
-  z-index: 4;
   white-space: normal;
+  z-index: 12;
 }
 
-.project-grid__cell--with-note:hover .project-grid__note-popover,
-.project-grid__cell--with-note:focus-visible .project-grid__note-popover {
-  opacity: 1;
-  visibility: visible;
-  transform: translate(-50%, 0);
+.project-grid__note-popover--floating {
+  position: fixed;
+  transform: translate(-50%, calc(-100% - 0.35rem));
+}
+
+.project-grid__note-popover--floating::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, -0.05rem);
+  border-width: 0.4rem 0.4rem 0;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
 }
 
 .project-grid__marker {
