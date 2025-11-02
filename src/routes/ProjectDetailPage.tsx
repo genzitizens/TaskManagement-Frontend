@@ -5,7 +5,7 @@ import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
 import { listNotes } from '../api/notes';
 import TaskModal from '../components/TaskModal';
-import type { TaskRes, TaskWithNoteInput } from '../types';
+import type { NoteRes, TaskRes, TaskWithNoteInput } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -14,6 +14,11 @@ const DESKTOP_COLUMN_COUNT = 30;
 
 const DESKTOP_BREAKPOINT = 1440;
 const TABLET_BREAKPOINT = 1024;
+
+interface TaskNoteCacheEntry {
+  note: NoteRes | null;
+  taskUpdatedAt: string;
+}
 
 function getVisibleColumnCount(width: number) {
   if (width >= DESKTOP_BREAKPOINT) {
@@ -53,6 +58,7 @@ export default function ProjectDetailPage() {
   } = useTasks(projectId);
 
   const tasks: TaskRes[] = tasksData?.content ?? [];
+  const [taskNotes, setTaskNotes] = useState<Record<string, TaskNoteCacheEntry>>({});
 
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -62,12 +68,123 @@ export default function ProjectDetailPage() {
   const [selectedTaskNote, setSelectedTaskNote] = useState<TaskRes['note'] | null>(null);
 
   useEffect(() => {
+    if (!tasks.length) {
+      setTaskNotes({});
+      return;
+    }
+
+    const validTaskIds = new Set(tasks.map((task) => task.id));
+
+    setTaskNotes((prev) => {
+      const next: Record<string, TaskNoteCacheEntry> = {};
+      let changed = false;
+
+      Object.entries(prev).forEach(([taskId, entry]) => {
+        if (validTaskIds.has(taskId)) {
+          next[taskId] = entry;
+        } else {
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [tasks]);
+
+  useEffect(() => {
+    if (!tasks.length) {
+      return;
+    }
+
+    const tasksNeedingNotes = tasks.filter((task) => {
+      if (task.note !== undefined) {
+        return false;
+      }
+
+      const cacheEntry = taskNotes[task.id];
+      if (!cacheEntry) {
+        return true;
+      }
+
+      return cacheEntry.taskUpdatedAt !== task.updatedAt;
+    });
+
+    if (!tasksNeedingNotes.length) {
+      return;
+    }
+
+    let ignore = false;
+
+    (async () => {
+      try {
+        const results = await Promise.all(
+          tasksNeedingNotes.map(async (task) => {
+            const response = await listNotes({ taskId: task.id, size: 1 });
+            return {
+              taskId: task.id,
+              taskUpdatedAt: task.updatedAt,
+              note: response.content[0] ?? null,
+            };
+          }),
+        );
+
+        if (ignore) {
+          return;
+        }
+
+        setTaskNotes((prev) => {
+          const next: Record<string, TaskNoteCacheEntry> = { ...prev };
+          let changed = false;
+
+          results.forEach(({ taskId, taskUpdatedAt, note }) => {
+            const existing = next[taskId];
+            if (
+              !existing ||
+              existing.taskUpdatedAt !== taskUpdatedAt ||
+              existing.note?.id !== note?.id ||
+              existing.note?.body !== note?.body
+            ) {
+              next[taskId] = { note, taskUpdatedAt };
+              changed = true;
+            }
+          });
+
+          return changed ? next : prev;
+        });
+      } catch (error) {
+        if (ignore) {
+          return;
+        }
+
+        setTaskNotes((prev) => {
+          const next: Record<string, TaskNoteCacheEntry> = { ...prev };
+          let changed = false;
+
+          tasksNeedingNotes.forEach((task) => {
+            const existing = next[task.id];
+            if (!existing || existing.taskUpdatedAt !== task.updatedAt || existing.note !== null) {
+              next[task.id] = { note: null, taskUpdatedAt: task.updatedAt };
+              changed = true;
+            }
+          });
+
+          return changed ? next : prev;
+        });
+      }
+    })();
+
+    return () => {
+      ignore = true;
+    };
+  }, [taskNotes, tasks]);
+
+  useEffect(() => {
     if (!selectedTask) {
       setSelectedTaskNote(null);
       return;
     }
 
-    setSelectedTaskNote(selectedTask.note ?? null);
+    setSelectedTaskNote(selectedTask.note ?? taskNotes[selectedTask.id]?.note ?? null);
 
     if (modalParam !== 'edit' || selectedTask.note) {
       return;
@@ -91,7 +208,7 @@ export default function ProjectDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [modalParam, selectedTask]);
+  }, [modalParam, selectedTask, taskNotes]);
 
   const taskForModal = useMemo<TaskRes | null>(() => {
     if (!selectedTask) {
@@ -359,8 +476,9 @@ export default function ProjectDetailPage() {
                 <tbody>
                   {tasks.map((task: TaskRes) => {
                     const dayRange = taskDayRange.get(task.id);
+                    const resolvedNote = task.note ?? taskNotes[task.id]?.note ?? null;
                     const noteBody =
-                      typeof task.note?.body === 'string' ? task.note.body.trim() : '';
+                      typeof resolvedNote?.body === 'string' ? resolvedNote.body.trim() : '';
                     const hasNote = noteBody.length > 0;
                     return (
                       <tr key={task.id}>
@@ -387,8 +505,8 @@ export default function ProjectDetailPage() {
                                   {task.duration === 1 ? 'day' : 'days'}
                                 </span>
                               ) : null}
-                              {task.note?.body ? (
-                                <span className="project-grid__event-note">Note: {task.note.body}</span>
+                              {resolvedNote?.body ? (
+                                <span className="project-grid__event-note">Note: {resolvedNote.body}</span>
                               ) : null}
                             </div>
                             <div className="project-grid__event-actions">
