@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProjectDetailPage from './ProjectDetailPage';
 import type { TaskRes } from '../types';
@@ -98,6 +98,9 @@ describe('ProjectDetailPage', () => {
     await waitFor(() => expect(mockedListNotes).toHaveBeenCalledWith({ taskId: task.id, size: 1 }));
 
     await screen.findByText('Note: Fetched note body');
+
+    const cells = await screen.findAllByRole('cell', { name: 'Task note: Fetched note body' });
+    fireEvent.focus(cells[0]);
 
     await waitFor(() => {
       const popover = document.querySelector('.project-grid__note-popover');
