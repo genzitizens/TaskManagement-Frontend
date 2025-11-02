@@ -362,8 +362,6 @@ export default function ProjectDetailPage() {
                     const noteBody =
                       typeof task.note?.body === 'string' ? task.note.body.trim() : '';
                     const hasNote = noteBody.length > 0;
-                    const fallbackNoteText = 'No note for this task.';
-                    const popoverText = hasNote ? noteBody : fallbackNoteText;
                     return (
                       <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
@@ -419,21 +417,16 @@ export default function ProjectDetailPage() {
                             dayRange.start <= dayNumber &&
                             dayNumber <= dayRange.end;
                           const isEndDay = isActive && dayRange.end === dayNumber;
-                          const shouldShowPopover = isActive;
+                          const shouldShowNote = isActive && hasNote;
                           const cellClassName = [
                             'project-grid__cell',
                             isActive ? 'project-grid__cell--active' : '',
-                            shouldShowPopover ? 'project-grid__cell--with-popover' : '',
+                            shouldShowNote ? 'project-grid__cell--with-note' : '',
                           ]
                             .filter(Boolean)
                             .join(' ');
-                          const cellAccessibilityProps = shouldShowPopover
-                            ? {
-                                tabIndex: 0,
-                                'aria-label': hasNote
-                                  ? `Task note: ${noteBody}`
-                                  : `No note available for ${task.title}`,
-                              }
+                          const cellAccessibilityProps = shouldShowNote
+                            ? { tabIndex: 0, 'aria-label': `Task note: ${noteBody}` }
                             : {};
                           return (
                             <td
@@ -442,9 +435,9 @@ export default function ProjectDetailPage() {
                               {...cellAccessibilityProps}
                             >
                               {isEndDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
-                              {shouldShowPopover ? (
+                              {shouldShowNote ? (
                                 <div className="project-grid__note-popover" aria-hidden="true">
-                                  {popoverText}
+                                  {noteBody}
                                 </div>
                               ) : null}
                             </td>

@@ -584,12 +584,12 @@ button:disabled {
   background: #dbeafe;
 }
 
-.project-grid__cell--with-popover {
+.project-grid__cell--with-note {
   position: relative;
   cursor: help;
 }
 
-.project-grid__cell--with-popover:focus-visible {
+.project-grid__cell--with-note:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
@@ -616,8 +616,8 @@ button:disabled {
   white-space: normal;
 }
 
-.project-grid__cell--with-popover:hover .project-grid__note-popover,
-.project-grid__cell--with-popover:focus-visible .project-grid__note-popover {
+.project-grid__cell--with-note:hover .project-grid__note-popover,
+.project-grid__cell--with-note:focus-visible .project-grid__note-popover {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
