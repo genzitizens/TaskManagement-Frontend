@@ -11,15 +11,8 @@ const taskSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
-  duration: z
-    .string()
-    .trim()
-    .min(1, 'Duration is required')
-    .regex(/^[0-9]+$/, 'Duration must be a whole number')
-    .transform((value) => Number.parseInt(value, 10))
-    .refine((value) => value > 0, { message: 'Duration must be at least 1 day' }),
   startAt: z.string().min(1, 'Start date is required'),
-  endAt: z.string().min(1, 'Due date is required'),
+  endAt: z.string().min(1, 'End date is required'),
   isActivity: z.boolean().optional(),
 });
 
@@ -27,7 +20,6 @@ interface FormState {
   projectId: string;
   title: string;
   description: string;
-  duration: string;
   startAt: string;
   endAt: string;
   isActivity: boolean;
@@ -46,7 +38,6 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       projectId: task.projectId,
       title: task.title,
       description: task.description ?? '',
-      duration: task.duration.toString(),
       startAt: formatDateLocal(task.startAt),
       endAt: formatDateLocal(task.endAt),
       isActivity: toBoolean(task.isActivity),
@@ -59,7 +50,6 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
     projectId: projectId ?? '',
     title: '',
     description: '',
-    duration: '',
     startAt: '',
     endAt: '',
     isActivity: false,
@@ -138,7 +128,6 @@ export default function TaskModal({
       projectId: form.projectId,
       title: form.title.trim(),
       description: form.description.trim() || undefined,
-      duration: form.duration,
       startAt: form.startAt,
       endAt: form.endAt,
       isActivity: form.isActivity,
@@ -150,20 +139,41 @@ export default function TaskModal({
       return;
     }
 
-    const { startAt, endAt, duration, ...rest } = result.data;
+    const { startAt, endAt, ...rest } = result.data;
 
     const startDate = dayjs(startAt).startOf('day');
-    const dueDate = dayjs(endAt).startOf('day');
+    const endDate = dayjs(endAt).startOf('day');
     if (!startDate.isValid()) {
       setFormError('Provide a valid start date');
       return;
     }
-    if (!dueDate.isValid()) {
-      setFormError('Provide a valid due date');
+    if (!endDate.isValid()) {
+      setFormError('Provide a valid end date');
       return;
     }
-    if (dueDate.isBefore(startDate)) {
-      setFormError('Due date must be after the start date');
+    if (endDate.isBefore(startDate)) {
+      setFormError('End date must be after the start date');
+      return;
+    }
+
+    const project = projects.find((item) => item.id === rest.projectId);
+    if (!project) {
+      setFormError('Select a project');
+      return;
+    }
+
+    const projectStartDate = dayjs(project.startDate).startOf('day');
+    if (!projectStartDate.isValid()) {
+      setFormError('Project start date is invalid');
+      return;
+    }
+
+    const duration = endDate.diff(startDate, 'day') + 1;
+    const startDay = startDate.diff(projectStartDate, 'day') + 1;
+    const endDay = endDate.diff(projectStartDate, 'day') + 1;
+
+    if (startDay < 1 || endDay < 1) {
+      setFormError('Task dates must be on or after the project start date');
       return;
     }
 
@@ -171,7 +181,9 @@ export default function TaskModal({
       ...rest,
       duration,
       startAt: startDate.toISOString(),
-      endAt: dueDate.toISOString()    
+      endAt: endDate.toISOString(),
+      start_day: startDay,
+      end_day: endDay,
     };
 
     const trimmedNote = form.note.trim();
@@ -283,27 +295,6 @@ export default function TaskModal({
             />
           </div>
           <div className="field">
-            <label htmlFor="task-duration-modal">Duration (days)</label>
-            <input
-              id="task-duration-modal"
-              name="duration"
-              type="number"
-              min={1}
-              step={1}
-              inputMode="numeric"
-              value={form.duration}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  duration: event.target.value,
-                }))
-              }
-              placeholder="e.g. 5"
-              required
-              disabled={submitting}
-            />
-          </div>
-          <div className="field">
             <label htmlFor="task-start-modal">Start</label>
             <input
               id="task-start-modal"
@@ -321,7 +312,7 @@ export default function TaskModal({
             />
           </div>
           <div className="field">
-            <label htmlFor="task-end-modal">Due</label>
+            <label htmlFor="task-end-modal">End</label>
             <input
               id="task-end-modal"
               name="endAt"

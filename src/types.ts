@@ -62,6 +62,8 @@ export interface TaskCreateInput {
   duration: number;
   startAt: string;
   endAt: string;
+  start_day: number;
+  end_day: number;
 }
 
 export type TaskUpdateInput = TaskCreateInput;
