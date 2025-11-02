@@ -6,6 +6,7 @@ import { useTasks } from '../hooks/useTasks';
 import { listNotes } from '../api/notes';
 import TaskModal from '../components/TaskModal';
 import type { TaskRes, TaskWithNoteInput } from '../types';
+import { parseProjectStartDate } from '../utils/projectDates';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -119,16 +120,16 @@ export default function ProjectDetailPage() {
     if (!project?.startDate) {
       return null;
     }
-    const parsed = dayjs(project.startDate);
-    return parsed.isValid() ? parsed.startOf('day') : null;
+    const parsed = parseProjectStartDate(project.startDate);
+    return parsed?.isValid() ? parsed.startOf('day') : null;
   }, [project?.startDate]);
 
   const projectStartLabel = useMemo(() => {
     if (!project?.startDate) {
       return null;
     }
-    const parsed = dayjs(project.startDate);
-    if (!parsed.isValid()) {
+    const parsed = parseProjectStartDate(project.startDate);
+    if (!parsed?.isValid()) {
       return project.startDate;
     }
     return parsed.format('MMMM D, YYYY');

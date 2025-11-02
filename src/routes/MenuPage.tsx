@@ -6,6 +6,7 @@ import { useProjects } from '../hooks/useProjects';
 import ProjectModal from '../components/ProjectModal';
 import DeleteProjectModal from '../components/DeleteProjectModal';
 import type { ProjectCreateInput, ProjectRes } from '../types';
+import { parseProjectStartDate } from '../utils/projectDates';
 
 dayjs.extend(relativeTime);
 
@@ -121,7 +122,7 @@ export default function MenuPage() {
             <header className="menu-card-header">
               <h3>{project.name}</h3>
               <p className="menu-card-meta">
-                Started {dayjs(project.startDate).format('MMM D, YYYY')}
+                Started {parseProjectStartDate(project.startDate)?.format('MMM D, YYYY') ?? project.startDate}
                 <span aria-hidden="true"> • </span>
                 Updated {dayjs(project.updatedAt).fromNow()}
               </p>
