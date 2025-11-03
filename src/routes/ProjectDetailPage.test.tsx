@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProjectDetailPage from './ProjectDetailPage';
 import type { TaskRes } from '../types';
