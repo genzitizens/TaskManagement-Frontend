@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest';
+import { render } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProjectDetailPage from './ProjectDetailPage';
 import type { TaskRes } from '../types';
@@ -20,9 +21,9 @@ const { useProject } = await import('../hooks/useProject');
 const { useTasks } = await import('../hooks/useTasks');
 const { listNotes } = await import('../api/notes');
 
-const mockedUseProject = useProject as unknown as vi.Mock;
-const mockedUseTasks = useTasks as unknown as vi.Mock;
-const mockedListNotes = listNotes as unknown as vi.Mock;
+const mockedUseProject = useProject as unknown as Mock;
+const mockedUseTasks = useTasks as unknown as Mock;
+const mockedListNotes = listNotes as unknown as Mock;
 
 const projectResponse = {
   data: {
