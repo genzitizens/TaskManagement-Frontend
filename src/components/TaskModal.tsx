@@ -1,8 +1,27 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
 import type { NoteAction, ProjectRes, TaskCreateInput, TaskRes, TaskWithNoteInput } from '../types';
 import { toBoolean } from '../utils/toBoolean';
+
+dayjs.extend(customParseFormat);
+
+const API_START_DATE_FORMAT = 'DD-MM-YYYY';
+
+const parseProjectStartDate = (value: string) => {
+  const isoParsed = dayjs(value);
+  if (isoParsed.isValid()) {
+    return isoParsed;
+  }
+
+  const apiParsed = dayjs(value, API_START_DATE_FORMAT, true);
+  if (apiParsed.isValid()) {
+    return apiParsed;
+  }
+
+  return null;
+};
 
 const taskSchema = z.object({
   projectId: z.string().uuid({ message: 'Select a project' }),
@@ -162,13 +181,13 @@ export default function TaskModal({
       return;
     }
 
-    const projectStartDate = dayjs(project.startDate);
-    if (!projectStartDate.isValid()) {
+    const projectStartDate = parseProjectStartDate(project.startDate);
+    if (!projectStartDate) {
       setFormError('Project start date is invalid');
       return;
     }
 
-    const normalizedProjectStartDate = dayjs(projectStartDate.format('YYYY-MM-DD')).startOf('day');
+    const normalizedProjectStartDate = projectStartDate.startOf('day');
 
     if (startDate.isBefore(normalizedProjectStartDate)) {
       setFormError('Task start date must be on or after the project start date');
