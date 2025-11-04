@@ -152,7 +152,7 @@ export default function TaskModal({
       return;
     }
     if (endDate.isBefore(startDate)) {
-      setFormError('End date must be after the start date');
+      setFormError('End date must be on or after the start date');
       return;
     }
 
@@ -162,15 +162,27 @@ export default function TaskModal({
       return;
     }
 
-    const projectStartDate = dayjs(project.startDate).startOf('day');
+    const projectStartDate = dayjs(project.startDate);
     if (!projectStartDate.isValid()) {
       setFormError('Project start date is invalid');
       return;
     }
 
+    const normalizedProjectStartDate = dayjs(projectStartDate.format('YYYY-MM-DD')).startOf('day');
+
+    if (startDate.isBefore(normalizedProjectStartDate)) {
+      setFormError('Task start date must be on or after the project start date');
+      return;
+    }
+
+    if (endDate.isBefore(normalizedProjectStartDate)) {
+      setFormError('Task end date must be on or after the project start date');
+      return;
+    }
+
     const duration = endDate.diff(startDate, 'day') + 1;
-    const startDay = startDate.diff(projectStartDate, 'day') + 1;
-    const endDay = endDate.diff(projectStartDate, 'day') + 1;
+    const startDay = startDate.diff(normalizedProjectStartDate, 'day') + 1;
+    const endDay = endDate.diff(normalizedProjectStartDate, 'day') + 1;
 
     if (startDay < 1 || endDay < 1) {
       setFormError('Task dates must be on or after the project start date');
