@@ -386,6 +386,8 @@ button:disabled {
   align-self: stretch;
   display: flex;
   justify-content: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .project-detail__title {
@@ -499,6 +501,11 @@ button:disabled {
   gap: 0.35rem;
   width: var(--project-grid-row-header-width);
   max-width: var(--project-grid-row-header-width);
+}
+
+.project-grid__row-header--tag {
+  background: #bbf7d0;
+  color: #14532d;
 }
 
 .project-grid__row-content {
