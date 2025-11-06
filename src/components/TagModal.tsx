@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
-import type { ProjectRes, TagCreateInput } from '../types';
+import type { ProjectRes, TagCreateInput, TagRes } from '../types';
 
 dayjs.extend(customParseFormat);
 
@@ -41,19 +41,38 @@ interface FormState {
   endAt: string;
 }
 
-const createInitialState = (projectId?: string): FormState => ({
-  projectId: projectId ?? '',
-  title: '',
-  description: '',
-  startAt: '',
-  endAt: '',
-});
+const toDateInputValue = (value: string) => {
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : '';
+};
+
+const createInitialState = (projectId?: string, tag?: TagRes | null): FormState => {
+  if (tag) {
+    return {
+      projectId: tag.projectId,
+      title: tag.title,
+      description: tag.description ?? '',
+      startAt: toDateInputValue(tag.startAt),
+      endAt: toDateInputValue(tag.endAt),
+    };
+  }
+
+  return {
+    projectId: projectId ?? '',
+    title: '',
+    description: '',
+    startAt: '',
+    endAt: '',
+  };
+};
 
 export interface TagModalProps {
   isOpen: boolean;
   projects: ProjectRes[];
   defaultProjectId?: string;
   submitting: boolean;
+  mode?: 'create' | 'edit';
+  tag?: TagRes | null;
   onSubmit: (input: TagCreateInput) => Promise<void>;
   onClose: () => void;
 }
@@ -63,10 +82,12 @@ export default function TagModal({
   projects,
   defaultProjectId,
   submitting,
+  mode = 'create',
+  tag,
   onSubmit,
   onClose,
 }: TagModalProps) {
-  const [form, setForm] = useState<FormState>(() => createInitialState(defaultProjectId));
+  const [form, setForm] = useState<FormState>(() => createInitialState(defaultProjectId, tag));
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -74,14 +95,21 @@ export default function TagModal({
       return;
     }
 
-    setForm(createInitialState(defaultProjectId));
+    setForm(createInitialState(defaultProjectId, tag));
     setFormError(null);
-  }, [defaultProjectId, isOpen]);
+  }, [defaultProjectId, isOpen, mode, tag]);
 
   const submitLabel = useMemo(
-    () => (submitting ? 'Creating…' : 'Create tag'),
-    [submitting],
+    () => {
+      if (mode === 'edit') {
+        return submitting ? 'Saving…' : 'Save changes';
+      }
+      return submitting ? 'Creating…' : 'Create tag';
+    },
+    [mode, submitting],
   );
+
+  const titleLabel = mode === 'edit' ? 'Edit Tag' : 'Add Tag';
 
   if (!isOpen) {
     return null;
@@ -190,7 +218,7 @@ export default function TagModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 id="tag-modal-title">Add Tag</h3>
+          <h3 id="tag-modal-title">{titleLabel}</h3>
           <button
             type="button"
             className="modal-close"

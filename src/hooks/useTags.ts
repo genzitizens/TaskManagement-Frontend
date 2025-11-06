@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createTag, listTags } from '../api/tags';
-import type { Page, TagCreateInput, TagRes } from '../types';
+import { createTag, deleteTag as deleteTagApi, listTags, updateTag as updateTagApi } from '../api/tags';
+import type { Page, TagCreateInput, TagRes, TagUpdateInput } from '../types';
 import { queryClient } from '../queryClient';
 
 export function useTags(projectId?: string) {
@@ -24,9 +24,24 @@ export function useTags(projectId?: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
+  const remove = useMutation({
+    mutationFn: (tagId: string) => deleteTagApi(tagId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const update = useMutation({
+    mutationFn: ({ tagId, data }: { tagId: string; data: TagUpdateInput }) =>
+      updateTagApi(tagId, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
   return {
     ...query,
     createTag: create.mutateAsync,
     creating: create.isPending,
+    deleteTag: remove.mutateAsync,
+    deleting: remove.isPending,
+    updateTag: (tagId: string, data: TagUpdateInput) => update.mutateAsync({ tagId, data }),
+    updating: update.isPending,
   };
 }

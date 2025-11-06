@@ -1,5 +1,5 @@
 import { apiRequest, DEFAULT_PAGE_SIZE } from './client';
-import type { Page, TagCreateInput, TagRes } from '../types';
+import type { Page, TagCreateInput, TagRes, TagUpdateInput } from '../types';
 
 export interface ListTagsParams {
   projectId?: string;
@@ -19,5 +19,18 @@ export function createTag(payload: TagCreateInput) {
   return apiRequest<TagRes>('/api/tags', {
     method: 'POST',
     body: JSON.stringify(payload),
+  });
+}
+
+export function updateTag(tagId: string, payload: TagUpdateInput) {
+  return apiRequest<TagRes>(`/api/tags/${tagId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteTag(tagId: string) {
+  return apiRequest<void>(`/api/tags/${tagId}`, {
+    method: 'DELETE',
   });
 }

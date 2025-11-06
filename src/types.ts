@@ -92,6 +92,8 @@ export interface TagCreateInput {
   isActivity?: boolean;
 }
 
+export type TagUpdateInput = TagCreateInput;
+
 export interface NoteCreateInput {
   projectId?: string;
   taskId?: string;
