@@ -9,11 +9,9 @@ import dayjs from 'dayjs';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTasks } from '../hooks/useTasks';
-import { useTags } from '../hooks/useTags';
 import { listNotes } from '../api/notes';
-import TagModal from '../components/TagModal';
 import TaskModal from '../components/TaskModal';
-import type { NoteRes, TagCreateInput, TagRes, TaskRes, TaskWithNoteInput } from '../types';
+import type { NoteRes, TaskRes, TaskWithNoteInput } from '../types';
 
 const MINIMUM_DAY_COLUMNS = 100;
 const MOBILE_COLUMN_COUNT = 20;
@@ -27,10 +25,6 @@ interface TaskNoteCacheEntry {
   note: NoteRes | null;
   taskUpdatedAt: string;
 }
-
-type TimelineItem =
-  | { kind: 'tag'; id: string; tag: TagRes }
-  | { kind: 'task'; id: string; task: TaskRes };
 
 function getVisibleColumnCount(width: number) {
   if (width >= DESKTOP_BREAKPOINT) {
@@ -48,7 +42,6 @@ export default function ProjectDetailPage() {
   const modalParam = searchParams.get('modal');
   const selectedTaskId = searchParams.get('taskId');
   const isCreateModalOpen = modalParam === 'create';
-  const isTagModalOpen = modalParam === 'create-tag';
 
   const {
     data: project,
@@ -70,27 +63,7 @@ export default function ProjectDetailPage() {
     updating,
   } = useTasks(projectId);
 
-  const {
-    data: tagsData,
-    isLoading: tagsLoading,
-    isError: tagsError,
-    error: tagsErrorData,
-    createTag,
-    creating: creatingTag,
-  } = useTags(projectId);
-
-  const tags: TagRes[] = tagsData?.content ?? [];
   const tasks: TaskRes[] = tasksData?.content ?? [];
-
-  const timelineItems: TimelineItem[] = useMemo(
-    () => [
-      ...tags.map((tag) => ({ kind: 'tag' as const, id: `tag:${tag.id}`, tag })),
-      ...tasks.map((task) => ({ kind: 'task' as const, id: `task:${task.id}`, task })),
-    ],
-    [tags, tasks],
-  );
-
-  const timelineLoading = tasksLoading || tagsLoading;
   const [taskNotes, setTaskNotes] = useState<Record<string, TaskNoteCacheEntry>>({});
   const selectedTask = useMemo(
     () => tasks.find((task) => task.id === selectedTaskId) ?? null,
@@ -287,21 +260,20 @@ export default function ProjectDetailPage() {
     ? projectStart.toISOString()
     : project?.startDate ?? undefined;
 
-  const { columnCount, itemDayRange } = useMemo(() => {
+  const { columnCount, taskDayRange } = useMemo(() => {
     if (!projectStart) {
       return {
         columnCount: MINIMUM_DAY_COLUMNS,
-        itemDayRange: new Map<string, { start: number; end: number }>(),
+        taskDayRange: new Map<string, { start: number; end: number }>(),
       };
     }
 
     let maxDay = MINIMUM_DAY_COLUMNS;
     const rangeMap = new Map<string, { start: number; end: number }>();
 
-    timelineItems.forEach((item: TimelineItem) => {
-      const entity = item.kind === 'task' ? item.task : item.tag;
-      const rawStartDate = entity.startAt ? dayjs(entity.startAt) : null;
-      const rawEndDate = entity.endAt ? dayjs(entity.endAt) : null;
+    tasks.forEach((task: TaskRes) => {
+      const rawStartDate = task.startAt ? dayjs(task.startAt) : null;
+      const rawEndDate = task.endAt ? dayjs(task.endAt) : null;
 
       const hasValidStart = rawStartDate?.isValid() ?? false;
       const hasValidEnd = rawEndDate?.isValid() ?? false;
@@ -313,14 +285,14 @@ export default function ProjectDetailPage() {
         ? Math.max(1, rawEndDate!.startOf('day').diff(projectStart, 'day') + 1)
         : null;
 
-      const hasDuration = typeof entity.duration === 'number' && entity.duration > 0;
+      const hasDuration = typeof task.duration === 'number' && task.duration > 0;
 
       if (!hasValidStart && hasValidEnd && hasDuration) {
-        startDay = Math.max(1, endDay! - entity.duration + 1);
+        startDay = Math.max(1, endDay! - task.duration + 1);
       }
 
       if (hasValidStart && !hasValidEnd && hasDuration) {
-        endDay = startDay! + entity.duration - 1;
+        endDay = startDay! + task.duration - 1;
       }
 
       if (startDay === null && endDay === null) {
@@ -338,21 +310,21 @@ export default function ProjectDetailPage() {
       let normalizedEnd = Math.max(tentativeStart, tentativeEnd);
 
       if (hasDuration) {
-        const expectedEnd = normalizedStart + entity.duration - 1;
+        const expectedEnd = normalizedStart + task.duration - 1;
         if (expectedEnd > normalizedEnd) {
           normalizedEnd = expectedEnd;
         }
       }
 
-      rangeMap.set(item.id, { start: normalizedStart, end: normalizedEnd });
+      rangeMap.set(task.id, { start: normalizedStart, end: normalizedEnd });
 
       if (normalizedEnd > maxDay) {
         maxDay = normalizedEnd;
       }
     });
 
-    return { columnCount: maxDay, itemDayRange: rangeMap };
-  }, [projectStart, timelineItems]);
+    return { columnCount: maxDay, taskDayRange: rangeMap };
+  }, [projectStart, tasks]);
 
   const dayColumns = useMemo(
     () => Array.from({ length: columnCount }, (_, index) => index + 1),
@@ -393,16 +365,6 @@ export default function ProjectDetailPage() {
     }
   }, [modalParam]);
 
-  const handleAddTag = () => {
-    if (!projectId) {
-      return;
-    }
-    const next = new URLSearchParams(searchParams);
-    next.set('modal', 'create-tag');
-    next.delete('taskId');
-    setSearchParams(next, { replace: true });
-  };
-
   const handleAddEvent = () => {
     if (!projectId) {
       return;
@@ -434,10 +396,6 @@ export default function ProjectDetailPage() {
     next.delete('taskId');
     setSearchParams(next, { replace: true });
     setDeleteError(null);
-  };
-
-  const handleCreateTag = async (input: TagCreateInput) => {
-    await createTag(input);
   };
 
   const handleCreateTask = async (input: TaskWithNoteInput) => {
@@ -498,15 +456,10 @@ export default function ProjectDetailPage() {
             </p>
           ) : null}
         </header>
-        {timelineLoading ? <p>Loading events…</p> : null}
+        {tasksLoading ? <p>Loading events…</p> : null}
         {tasksError ? (
           <p className="error-message">
             {tasksErrorData instanceof Error ? tasksErrorData.message : 'Failed to load events'}
-          </p>
-        ) : null}
-        {tagsError ? (
-          <p className="error-message">
-            {tagsErrorData instanceof Error ? tagsErrorData.message : 'Failed to load tags'}
           </p>
         ) : null}
         <div className="project-grid">
@@ -524,74 +477,60 @@ export default function ProjectDetailPage() {
                   ))}
                 </tr>
               </thead>
-              {timelineItems.length ? (
+              {tasks.length ? (
                 <tbody>
-                  {timelineItems.map((item) => {
-                    const isTask = item.kind === 'task';
-                    const entity = isTask ? item.task : item.tag;
-                    const taskEntity = isTask ? item.task : null;
-                    const dayRange = itemDayRange.get(item.id);
-                    const resolvedNote = taskEntity
-                      ? taskEntity.note ?? taskNotes[taskEntity.id]?.note ?? null
-                      : null;
+                  {tasks.map((task: TaskRes) => {
+                    const dayRange = taskDayRange.get(task.id);
+                    const resolvedNote = task.note ?? taskNotes[task.id]?.note ?? null;
                     const noteBody =
                       typeof resolvedNote?.body === 'string' ? resolvedNote.body.trim() : '';
-                    const hasNote = Boolean(taskEntity && noteBody.length > 0);
+                    const hasNote = noteBody.length > 0;
                     return (
-                      <tr key={item.id}>
+                      <tr key={task.id}>
                         <th scope="row" className="project-grid__row-header">
                           <div className="project-grid__row-content">
                             <div className="project-grid__event-text">
-                              <span className="project-grid__event-name">{entity.title}</span>
-                              {item.kind === 'tag' ? (
-                                <span className="project-grid__event-description">Tag</span>
+                              <span className="project-grid__event-name">{task.title}</span>
+                              {task.description ? (
+                                <span className="project-grid__event-description">{task.description}</span>
                               ) : null}
-                              {entity.description ? (
+                              {task.startAt ? (
                                 <span className="project-grid__event-description">
-                                  {entity.description}
+                                  Starts: {dayjs(task.startAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
-                              {entity.startAt ? (
+                              {task.endAt ? (
                                 <span className="project-grid__event-description">
-                                  Starts: {dayjs(entity.startAt).format('MMM D, YYYY')}
+                                  Due: {dayjs(task.endAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
-                              {entity.endAt ? (
+                              {Number.isFinite(task.duration) ? (
                                 <span className="project-grid__event-description">
-                                  Due: {dayjs(entity.endAt).format('MMM D, YYYY')}
+                                  Duration: {task.duration}{' '}
+                                  {task.duration === 1 ? 'day' : 'days'}
                                 </span>
                               ) : null}
-                              {Number.isFinite(entity.duration) ? (
-                                <span className="project-grid__event-description">
-                                  Duration: {entity.duration}{' '}
-                                  {entity.duration === 1 ? 'day' : 'days'}
-                                </span>
-                              ) : null}
-                              {isTask && resolvedNote?.body ? (
+                              {resolvedNote?.body ? (
                                 <span className="project-grid__event-note">Note: {resolvedNote.body}</span>
                               ) : null}
                             </div>
                             <div className="project-grid__event-actions">
-                              {isTask ? (
-                                <>
-                                  <button
-                                    type="button"
-                                    className="project-grid__icon-button"
-                                    onClick={() => handleEditTaskRequest(entity.id)}
-                                    aria-label={`Edit ${entity.title}`}
-                                  >
-                                    <PencilIcon aria-hidden="true" />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="project-grid__icon-button project-grid__icon-button--danger"
-                                    onClick={() => handleDeleteTaskRequest(entity.id)}
-                                    aria-label={`Delete ${entity.title}`}
-                                  >
-                                    <TrashIcon aria-hidden="true" />
-                                  </button>
-                                </>
-                              ) : null}
+                              <button
+                                type="button"
+                                className="project-grid__icon-button"
+                                onClick={() => handleEditTaskRequest(task.id)}
+                                aria-label={`Edit ${task.title}`}
+                              >
+                                <PencilIcon aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="project-grid__icon-button project-grid__icon-button--danger"
+                                onClick={() => handleDeleteTaskRequest(task.id)}
+                                aria-label={`Delete ${task.title}`}
+                              >
+                                <TrashIcon aria-hidden="true" />
+                              </button>
                             </div>
                           </div>
                         </th>
@@ -626,29 +565,16 @@ export default function ProjectDetailPage() {
             </table>
           </div>
         </div>
-        {!timelineItems.length && !timelineLoading ? (
-          <p className="project-detail__empty">
-            No events yet. Use Add Tag or Add Event to create one.
-          </p>
+        {!tasks.length && !tasksLoading ? (
+          <p className="project-detail__empty">No events yet. Use Add Event to create one.</p>
         ) : null}
       </section>
 
       <div className="project-detail__actions">
-        <button type="button" onClick={handleAddTag} disabled={!projectId || projectLoading}>
-          Add Tag
-        </button>
-        <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
-          Add Event
-        </button>
-      </div>
-      <TagModal
-        isOpen={isTagModalOpen}
-        projects={project ? [project] : []}
-        defaultProjectId={projectId}
-        submitting={creatingTag}
-        onSubmit={handleCreateTag}
-        onClose={handleCloseModal}
-      />
+          <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
+            Add Event
+          </button>
+        </div>
       <TaskModal
         isOpen={isCreateModalOpen}
         projects={project ? [project] : []}
