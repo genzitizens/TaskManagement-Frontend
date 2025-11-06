@@ -21,18 +21,6 @@ export interface TaskRes {
   note?: NoteRes | null;
 }
 
-export interface TagRes {
-  id: string;
-  projectId: string;
-  title: string;
-  description?: string;
-  duration: number;
-  startAt: string;
-  endAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface NoteRes {
   id: string;
   projectId?: string;
@@ -79,17 +67,6 @@ export interface TaskCreateInput {
 }
 
 export type TaskUpdateInput = TaskCreateInput;
-
-export interface TagCreateInput {
-  projectId: string;
-  title: string;
-  description?: string;
-  duration: number;
-  startAt: string;
-  endAt: string;
-  start_day: number;
-  end_day: number;
-}
 
 export interface NoteCreateInput {
   projectId?: string;
