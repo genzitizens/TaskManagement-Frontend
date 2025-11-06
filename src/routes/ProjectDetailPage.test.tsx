@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { screen, waitFor } from '@testing-library/dom';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import ProjectDetailPage from './ProjectDetailPage';
-import type { TaskRes } from '../types';
+import type { TagRes, TaskRes } from '../types';
 
 vi.mock('../hooks/useProject', () => ({
   useProject: vi.fn(),
@@ -13,16 +13,22 @@ vi.mock('../hooks/useTasks', () => ({
   useTasks: vi.fn(),
 }));
 
+vi.mock('../hooks/useTags', () => ({
+  useTags: vi.fn(),
+}));
+
 vi.mock('../api/notes', () => ({
   listNotes: vi.fn(),
 }));
 
 const { useProject } = await import('../hooks/useProject');
 const { useTasks } = await import('../hooks/useTasks');
+const { useTags } = await import('../hooks/useTags');
 const { listNotes } = await import('../api/notes');
 
 const mockedUseProject = useProject as unknown as Mock;
 const mockedUseTasks = useTasks as unknown as Mock;
+const mockedUseTags = useTags as unknown as Mock;
 const mockedListNotes = listNotes as unknown as Mock;
 
 const projectResponse = {
@@ -52,10 +58,20 @@ const createTaskHookResponse = (tasks: TaskRes[]) => ({
   updating: false,
 });
 
+const createTagHookResponse = (tags: TagRes[] = []) => ({
+  data: { content: tags, totalElements: tags.length, totalPages: 1, size: tags.length, number: 0, numberOfElements: tags.length },
+  isLoading: false,
+  isError: false,
+  error: null,
+  createTag: vi.fn(),
+  creating: false,
+});
+
 describe('ProjectDetailPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedUseProject.mockReturnValue(projectResponse);
+    mockedUseTags.mockReturnValue(createTagHookResponse());
   });
 
   it('renders note content for tasks with notes fetched separately', async () => {
