@@ -537,16 +537,9 @@ export default function ProjectDetailPage() {
                     const noteBody =
                       typeof resolvedNote?.body === 'string' ? resolvedNote.body.trim() : '';
                     const hasNote = Boolean(taskEntity && noteBody.length > 0);
-                    const rowHeaderClassName = [
-                      'project-grid__row-header',
-                      item.kind === 'tag' ? 'project-grid__row-header--tag' : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' ');
-
                     return (
                       <tr key={item.id}>
-                        <th scope="row" className={rowHeaderClassName}>
+                        <th scope="row" className="project-grid__row-header">
                           <div className="project-grid__row-content">
                             <div className="project-grid__event-text">
                               <span className="project-grid__event-name">{entity.title}</span>
