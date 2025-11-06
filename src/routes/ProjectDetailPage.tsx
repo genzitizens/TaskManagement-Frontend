@@ -71,6 +71,10 @@ export default function ProjectDetailPage() {
     error: tagsErrorData,
     createTag,
     creating: creatingTag,
+    deleteTag: deleteTagApi,
+    deleting: deletingTag,
+    updateTag: updateTagApi,
+    updating: updatingTag,
   } = useTags(projectId);
 
   const {
@@ -270,7 +274,12 @@ export default function ProjectDetailPage() {
 
   const isEditModalOpen = modalParam === 'edit' && Boolean(selectedTask);
   const isDeleteModalOpen = modalParam === 'delete' && Boolean(selectedTask);
-  const [isCreateTagModalOpen, setIsCreateTagModalOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [tagModalMode, setTagModalMode] = useState<'create' | 'edit'>('create');
+  const [tagForModal, setTagForModal] = useState<TagRes | null>(null);
+  const [tagToDelete, setTagToDelete] = useState<TagRes | null>(null);
+  const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
+  const [tagDeleteError, setTagDeleteError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const projectStart = useMemo(() => {
@@ -408,15 +417,66 @@ export default function ProjectDetailPage() {
     if (!projectId) {
       return;
     }
-    setIsCreateTagModalOpen(true);
+    setTagModalMode('create');
+    setTagForModal(null);
+    setIsTagModalOpen(true);
   };
 
   const handleCloseTagModal = () => {
-    setIsCreateTagModalOpen(false);
+    setIsTagModalOpen(false);
+    setTagModalMode('create');
+    setTagForModal(null);
   };
 
-  const handleCreateTag = async (input: TagCreateInput) => {
+  const handleSubmitTag = async (input: TagCreateInput) => {
+    if (tagModalMode === 'edit' && tagForModal) {
+      await updateTagApi(tagForModal.id, input);
+      return;
+    }
+
     await createTag(input);
+  };
+
+  const handleEditTagRequest = (tagId: string) => {
+    const tag = tags.find((item) => item.id === tagId);
+    if (!tag) {
+      return;
+    }
+    setTagModalMode('edit');
+    setTagForModal(tag);
+    setIsTagModalOpen(true);
+  };
+
+  const handleDeleteTagRequest = (tagId: string) => {
+    const tag = tags.find((item) => item.id === tagId);
+    if (!tag) {
+      return;
+    }
+    setTagToDelete(tag);
+    setTagDeleteError(null);
+    setIsDeleteTagModalOpen(true);
+  };
+
+  const handleCloseDeleteTagModal = () => {
+    if (deletingTag) {
+      return;
+    }
+    setIsDeleteTagModalOpen(false);
+    setTagToDelete(null);
+    setTagDeleteError(null);
+  };
+
+  const handleDeleteTagConfirm = async () => {
+    if (!tagToDelete) {
+      return;
+    }
+    setTagDeleteError(null);
+    try {
+      await deleteTagApi(tagToDelete.id);
+      handleCloseDeleteTagModal();
+    } catch (error) {
+      setTagDeleteError(error instanceof Error ? error.message : 'Failed to delete tag');
+    }
   };
 
   const handleAddEvent = () => {
@@ -604,7 +664,26 @@ export default function ProjectDetailPage() {
                                     <TrashIcon aria-hidden="true" />
                                   </button>
                                 </>
-                              ) : null}
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="project-grid__icon-button"
+                                    onClick={() => handleEditTagRequest(item.id)}
+                                    aria-label={`Edit ${item.title}`}
+                                  >
+                                    <PencilIcon aria-hidden="true" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="project-grid__icon-button project-grid__icon-button--danger"
+                                    onClick={() => handleDeleteTagRequest(item.id)}
+                                    aria-label={`Delete ${item.title}`}
+                                  >
+                                    <TrashIcon aria-hidden="true" />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </th>
@@ -650,11 +729,13 @@ export default function ProjectDetailPage() {
         </button>
       </div>
       <TagModal
-        isOpen={isCreateTagModalOpen}
+        isOpen={isTagModalOpen}
         projects={project ? [project] : []}
         defaultProjectId={projectId}
-        submitting={creatingTag}
-        onSubmit={handleCreateTag}
+        submitting={tagModalMode === 'edit' ? updatingTag : creatingTag}
+        mode={tagModalMode}
+        tag={tagForModal}
+        onSubmit={handleSubmitTag}
         onClose={handleCloseTagModal}
       />
       <TaskModal
@@ -682,6 +763,14 @@ export default function ProjectDetailPage() {
         error={deleteError}
         onCancel={handleCloseModal}
         onConfirm={handleDeleteTaskConfirm}
+      />
+      <DeleteTagModal
+        isOpen={isDeleteTagModalOpen}
+        tag={tagToDelete}
+        submitting={deletingTag}
+        error={tagDeleteError}
+        onCancel={handleCloseDeleteTagModal}
+        onConfirm={handleDeleteTagConfirm}
       />
     </div>
   );
@@ -755,6 +844,81 @@ function DeleteTaskModal({
             disabled={submitting}
           >
             {submitting ? 'Deleting…' : 'Delete task'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface DeleteTagModalProps {
+  isOpen: boolean;
+  tag: TagRes | null;
+  submitting: boolean;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: () => Promise<void>;
+}
+
+function DeleteTagModal({
+  isOpen,
+  tag,
+  submitting,
+  error,
+  onCancel,
+  onConfirm,
+}: DeleteTagModalProps) {
+  if (!isOpen || !tag) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    if (submitting) {
+      return;
+    }
+    onCancel();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-tag-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="delete-tag-modal-title">Delete tag</h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onCancel}
+            aria-label="Close delete confirmation"
+            disabled={submitting}
+          >
+            ×
+          </button>
+        </div>
+        <div>
+          <p>
+            Are you sure you want to delete <strong>{tag.title}</strong>? This action cannot be undone.
+          </p>
+          {error ? <p className="error-message">{error}</p> : null}
+        </div>
+        <div className="modal-actions">
+          <button type="button" onClick={onCancel} disabled={submitting}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="button-danger"
+            onClick={() => {
+              void onConfirm();
+            }}
+            disabled={submitting}
+          >
+            {submitting ? 'Deleting…' : 'Delete tag'}
           </button>
         </div>
       </div>

@@ -65,6 +65,10 @@ const createTagHookResponse = (tags: TagRes[] = []) => ({
   error: null,
   createTag: vi.fn(),
   creating: false,
+  deleteTag: vi.fn(),
+  deleting: false,
+  updateTag: vi.fn(),
+  updating: false,
 });
 
 describe('ProjectDetailPage', () => {
