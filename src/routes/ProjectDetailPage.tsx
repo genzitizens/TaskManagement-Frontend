@@ -546,12 +546,6 @@ export default function ProjectDetailPage() {
         <div>
           <h2 className="project-detail__title">{projectTitle}</h2>
           {projectError ? <p className="error-message">{projectDescription}</p> : null}
-          {projectStartLabel ? (
-            <p className="project-detail__description project-detail__description--meta">
-              Project start date:{' '}
-              <time dateTime={projectStartDateTime}>{projectStartLabel}</time>
-            </p>
-          ) : null}
         </div>
 
       </div>
