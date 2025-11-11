@@ -124,10 +124,10 @@ export default function MenuPage() {
               <h3>{project.name}</h3>
               <p className="menu-card-meta">
                 Started {(() => {
-                  console.log('BEFORE - Project:', project.name, 'Raw startDate:', project.startDate, 'Type:', typeof project.startDate);
+                  // console.log('BEFORE - Project:', project.name, 'Raw startDate:', project.startDate, 'Type:', typeof project.startDate);
                   // Parse with specific DD-MM-YYYY format
                   const dayjsDate = dayjs(project.startDate, 'DD-MM-YYYY', true);
-                  console.log('AFTER - Dayjs object isValid:', dayjsDate.isValid(), 'Formatted result:', dayjsDate.format('D MMMM YYYY'));
+                  // console.log('AFTER - Dayjs object isValid:', dayjsDate.isValid(), 'Formatted result:', dayjsDate.format('D MMMM YYYY'));
                   return dayjsDate.format('D MMMM YYYY');
                 })()}
                 <span aria-hidden="true"> • </span>
