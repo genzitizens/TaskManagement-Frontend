@@ -21,11 +21,32 @@ export default function DeleteProjectModal({
     return null;
   }
 
-  const handleBackdropClick = () => {
+  const handleBackdropClick = (event: React.MouseEvent) => {
     if (submitting) {
       return;
     }
-    onCancel();
+    
+    // Only close if clicking in the outer area, not near the modal
+    const target = event.target as HTMLElement;
+    const modal = event.currentTarget.querySelector('.modal');
+    
+    if (modal && target === event.currentTarget) {
+      const rect = modal.getBoundingClientRect();
+      const safeZone = 60; // 60px buffer around modal
+      const clickX = event.clientX;
+      const clickY = event.clientY;
+      
+      // Check if click is outside the safe zone
+      const isOutsideSafeZone = 
+        clickX < rect.left - safeZone ||
+        clickX > rect.right + safeZone ||
+        clickY < rect.top - safeZone ||
+        clickY > rect.bottom + safeZone;
+      
+      if (isOutsideSafeZone) {
+        onCancel();
+      }
+    }
   };
 
   const handleConfirmClick = () => {

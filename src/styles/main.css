@@ -256,6 +256,7 @@ button:disabled {
   overflow-y: auto;
   box-shadow: 0 20px 48px rgba(15, 23, 42, 0.25);
   text-align: left;
+  position: relative;
 }
 
 .modal-header {
