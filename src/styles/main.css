@@ -72,10 +72,8 @@ body {
 }
 
 .app-shell--wide {
-  width: 100%;
-  max-width: calc(100vw - 40px);
-  margin: 0 auto;
-  box-sizing: border-box;
+  width: calc(100% - 10%);
+  max-width: none;
 }
 
 .app-header {
@@ -636,7 +634,8 @@ button:disabled {
   overflow-x: auto;
   overflow-y: visible;
   width: 100%;
-  box-sizing: border-box;
+  max-width: 95vw;
+  /* margin-inline: auto; */
 }
 
 .project-grid__table {
