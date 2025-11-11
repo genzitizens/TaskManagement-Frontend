@@ -72,8 +72,10 @@ body {
 }
 
 .app-shell--wide {
-  width: calc(100% - 10%);
+  width: 100%;
   max-width: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 .app-header {
