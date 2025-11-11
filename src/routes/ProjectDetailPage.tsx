@@ -614,24 +614,30 @@ export default function ProjectDetailPage() {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 12px',
-            background: '#3b82f6',
+            padding: '10px 20px',
+            background: '#667eea',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             cursor: 'pointer',
             color: 'white',
-            fontSize: '14px',
+            fontSize: '15px',
+            fontWeight: '600',
             transition: 'all 0.2s ease',
+            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.25)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#2563eb';
+            e.currentTarget.style.backgroundColor = '#5568d3';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.35)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#3b82f6';
+            e.currentTarget.style.backgroundColor = '#667eea';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.25)';
           }}
           aria-label="View All Tasks"
         >
-          <ListIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+          <ListIcon style={{ width: '18px', height: '18px' }} aria-hidden="true" />
           View All Tasks
         </button>
       </div>
@@ -1013,15 +1019,48 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
         onClick={(event) => event.stopPropagation()}
         style={{ maxWidth: '800px', width: '90vw' }}
       >
-        <div className="modal-header">
-          <h3 id="task-list-modal-title">
-            📋 All Tasks ({tasks.length})
+        <div className="modal-header" style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          borderRadius: '16px 16px 0 0',
+        }}>
+          <h3 id="task-list-modal-title" style={{ 
+            margin: 0,
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '20px',
+            fontWeight: '700'
+          }}>
+            <span style={{ fontSize: '24px' }}>📋</span>
+            All Tasks ({tasks.length})
           </h3>
           <button
             type="button"
             className="modal-close"
             onClick={onClose}
             aria-label="Close task list"
+            style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              color: 'white',
+              border: 'none',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              fontSize: '24px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+            }}
           >
             ×
           </button>
@@ -1044,23 +1083,42 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
                     key={task.id} 
                     style={{
                       border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      padding: '16px',
+                      borderRadius: '12px',
+                      padding: '18px',
                       backgroundColor: '#fff',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
+                      e.currentTarget.style.borderColor = '#667eea';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     {/* Color and Title in same line */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                       <div 
                         style={{
-                          width: '16px',
-                          height: '16px',
-                          backgroundColor: task.color || '#3b82f6',
-                          borderRadius: '4px',
+                          width: '8px',
+                          height: '8px',
+                          backgroundColor: task.color || '#667eea',
+                          borderRadius: '50%',
                           flexShrink: 0,
+                          boxShadow: `0 0 0 3px ${task.color || '#667eea'}20`,
                         }}
                       />
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+                      <h4 style={{ 
+                        margin: 0, 
+                        fontSize: '17px', 
+                        fontWeight: '600', 
+                        color: '#111827',
+                        letterSpacing: '-0.3px'
+                      }}>
                         {task.title}
                       </h4>
                     </div>
