@@ -871,7 +871,7 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
         {isTask ? '📋' : '🏷️'} {item.title}
       </div>
       {resolvedNote?.body && (
-        <div style={{ fontStyle: 'italic' }}>
+        <div style={{ fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
           {resolvedNote.body.length > 100 
             ? `${resolvedNote.body.substring(0, 100)}...` 
             : resolvedNote.body}
@@ -952,7 +952,7 @@ function InspectModal({ isOpen, entry, taskNotes, onClose }: InspectModalProps) 
 
           <div className="inspect-modal__section">
             <h4 className="inspect-modal__label">Description</h4>
-            <p className="inspect-modal__value">
+            <p className="inspect-modal__value" style={{ whiteSpace: 'pre-wrap' }}>
               {item.description || 'No description provided'}
             </p>
           </div>
@@ -993,7 +993,7 @@ function InspectModal({ isOpen, entry, taskNotes, onClose }: InspectModalProps) 
               <div className="inspect-modal__divider" />
               <div className="inspect-modal__section">
                 <h4 className="inspect-modal__label">Notes</h4>
-                <p className="inspect-modal__value inspect-modal__notes">
+                <p className="inspect-modal__value inspect-modal__notes" style={{ whiteSpace: 'pre-wrap' }}>
                   {resolvedNote.body}
                 </p>
               </div>
