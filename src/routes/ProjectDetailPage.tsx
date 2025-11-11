@@ -1022,7 +1022,7 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
         <div className="modal-header" style={{
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
-          borderRadius: '16px 16px 0 0',
+          padding: '16px 20px',
         }}>
           <h3 id="task-list-modal-title" style={{ 
             margin: 0,
@@ -1030,10 +1030,10 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            fontSize: '20px',
-            fontWeight: '700'
+            fontSize: '18px',
+            fontWeight: '600'
           }}>
-            <span style={{ fontSize: '24px' }}>📋</span>
+            <span style={{ fontSize: '20px' }}>📋</span>
             All Tasks ({tasks.length})
           </h3>
           <button
@@ -1045,15 +1045,16 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
               background: 'rgba(255, 255, 255, 0.2)',
               color: 'white',
               border: 'none',
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              fontSize: '24px',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              fontSize: '20px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.2s ease',
+              lineHeight: 1,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
@@ -1083,41 +1084,37 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
                     key={task.id} 
                     style={{
                       border: '1px solid #e5e7eb',
-                      borderRadius: '12px',
-                      padding: '18px',
+                      borderRadius: '10px',
+                      padding: '14px 16px',
                       backgroundColor: '#fff',
                       transition: 'all 0.2s ease',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.12)';
                       e.currentTarget.style.borderColor = '#667eea';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                      e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
                       e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     {/* Color and Title in same line */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                       <div 
                         style={{
-                          width: '8px',
-                          height: '8px',
+                          width: '10px',
+                          height: '10px',
                           backgroundColor: task.color || '#667eea',
-                          borderRadius: '50%',
+                          borderRadius: '3px',
                           flexShrink: 0,
-                          boxShadow: `0 0 0 3px ${task.color || '#667eea'}20`,
                         }}
                       />
                       <h4 style={{ 
                         margin: 0, 
-                        fontSize: '17px', 
+                        fontSize: '15px', 
                         fontWeight: '600', 
                         color: '#111827',
-                        letterSpacing: '-0.3px'
                       }}>
                         {task.title}
                       </h4>
