@@ -368,19 +368,38 @@ export default function TaskModal({
           </div>
           <div className="field">
             <label htmlFor="task-color-modal">Color</label>
-            <input
-              id="task-color-modal"
-              name="color"
-              type="color"
-              value={form.color}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  color: event.target.value,
-                }))
-              }
-              disabled={submitting}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                id="task-color-modal"
+                name="color"
+                type="color"
+                value={form.color}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    color: event.target.value,
+                  }))
+                }
+                disabled={submitting}
+                style={{ width: '40px', height: '32px' }}
+              />
+              <div 
+                style={{
+                  width: '60px',
+                  height: '32px',
+                  backgroundColor: form.color,
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  color: '#666',
+                }}
+              >
+                {form.color}
+              </div>
+            </div>
           </div>
           {/* <div className="field">
             <label>
