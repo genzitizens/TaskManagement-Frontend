@@ -359,7 +359,7 @@ export default function TaskModal({
               disabled={submitting}
             />
           </div>
-          <div className="field">
+          {/* <div className="field">
             <label>
               <input
                 type="checkbox"
@@ -390,7 +390,7 @@ export default function TaskModal({
               />{' '}
               Add note
             </label>
-          </div>
+          </div> */}
           {form.hasNote ? (
             <div className="field">
               <label htmlFor="task-note-modal">Note</label>
