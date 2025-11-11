@@ -289,6 +289,7 @@ export default function ProjectDetailPage() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isInspectModalOpen, setIsInspectModalOpen] = useState(false);
   const [itemToInspect, setItemToInspect] = useState<TimelineEntry | null>(null);
+  const [isTaskListModalOpen, setIsTaskListModalOpen] = useState(false);
 
   const projectStart = useMemo(() => {
     if (!project?.startDate) {
@@ -575,38 +576,65 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="card project-detail">
-      <button
-        type="button"
-        onClick={() => navigate('/')}
-        className="back-button"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '8px 12px',
-          background: 'none',
-          border: '1px solid #d1d5db',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          color: '#374151',
-          fontSize: '14px',
-          transition: 'all 0.2s ease',
-          marginBottom: '16px',
-          alignSelf: 'flex-start',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f3f4f6';
-          e.currentTarget.style.borderColor = '#9ca3af';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.borderColor = '#d1d5db';
-        }}
-        aria-label="Back to Dashboard"
-      >
-        <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
-        Back to Dashboard
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="back-button"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            background: 'none',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            color: '#374151',
+            fontSize: '14px',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#f3f4f6';
+            e.currentTarget.style.borderColor = '#9ca3af';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+            e.currentTarget.style.borderColor = '#d1d5db';
+          }}
+          aria-label="Back to Dashboard"
+        >
+          <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+          Back to Dashboard
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsTaskListModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            background: '#3b82f6',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            color: 'white',
+            fontSize: '14px',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#2563eb';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#3b82f6';
+          }}
+          aria-label="View All Tasks"
+        >
+          <ListIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+          View All Tasks
+        </button>
+      </div>
       <div className="project-detail__header">
         <div>
           <h2 className="project-detail__title">{projectTitle}</h2>
@@ -867,6 +895,12 @@ export default function ProjectDetailPage() {
         taskNotes={taskNotes}
         onClose={handleCloseInspectModal}
       />
+      <TaskListModal
+        isOpen={isTaskListModalOpen}
+        tasks={tasks}
+        taskNotes={taskNotes}
+        onClose={() => setIsTaskListModalOpen(false)}
+      />
     </div>
   );
 }
@@ -910,6 +944,131 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
             : resolvedNote.body}
         </div>
       )}
+    </div>
+  );
+}
+
+interface TaskListModalProps {
+  isOpen: boolean;
+  tasks: TaskRes[];
+  taskNotes: Record<string, TaskNoteCacheEntry>;
+  onClose: () => void;
+}
+
+function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps) {
+  if (!isOpen) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal task-list-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="task-list-modal-title"
+        onClick={(event) => event.stopPropagation()}
+        style={{ maxWidth: '800px', width: '90vw' }}
+      >
+        <div className="modal-header">
+          <h3 id="task-list-modal-title">
+            📋 All Tasks ({tasks.length})
+          </h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close task list"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="task-list-modal__content" style={{ maxHeight: '70vh', overflow: 'auto' }}>
+          {tasks.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>
+              No tasks in this project yet.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {tasks.map((task) => {
+                const resolvedNote = task.note ?? taskNotes[task.id]?.note ?? null;
+                const startDate = task.startAt ? dayjs(task.startAt).format('MMM D, YYYY') : 'Not set';
+                const endDate = task.endAt ? dayjs(task.endAt).format('MMM D, YYYY') : 'Not set';
+                
+                return (
+                  <div 
+                    key={task.id} 
+                    style={{
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      backgroundColor: '#fff',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                      <div 
+                        style={{
+                          width: '16px',
+                          height: '16px',
+                          backgroundColor: task.color || '#3b82f6',
+                          borderRadius: '4px',
+                          flexShrink: 0,
+                          marginTop: '2px',
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+                          {task.title}
+                        </h4>
+                        {task.description && (
+                          <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
+                            {task.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', fontSize: '14px' }}>
+                      <div>
+                        <span style={{ fontWeight: '500', color: '#374151' }}>Start Date:</span>
+                        <div style={{ color: '#6b7280' }}>{startDate}</div>
+                      </div>
+                      <div>
+                        <span style={{ fontWeight: '500', color: '#374151' }}>End Date:</span>
+                        <div style={{ color: '#6b7280' }}>{endDate}</div>
+                      </div>
+                      {Number.isFinite(task.duration) && task.duration! > 0 && (
+                        <div>
+                          <span style={{ fontWeight: '500', color: '#374151' }}>Duration:</span>
+                          <div style={{ color: '#6b7280' }}>
+                            {task.duration} {task.duration === 1 ? 'day' : 'days'}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {resolvedNote?.body && (
+                      <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                        <div style={{ fontWeight: '500', color: '#374151', marginBottom: '4px', fontSize: '14px' }}>
+                          Note:
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
+                          {resolvedNote.body}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1218,6 +1377,14 @@ function ArrowLeftIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
       <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+    </svg>
+  );
+}
+
+function ListIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
     </svg>
   );
 }
