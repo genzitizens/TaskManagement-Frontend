@@ -613,7 +613,7 @@ export default function ProjectDetailPage() {
               <thead>
                 <tr>
                   <th scope="col" className="project-grid__header project-grid__header--title">
-                    Event Name
+                    Task/Tag
                   </th>
                   {dayColumns.map((dayNumber) => (
                     <th key={dayNumber} scope="col" className="project-grid__header">

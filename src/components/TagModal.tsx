@@ -239,26 +239,18 @@ export default function TagModal({
         <form onSubmit={handleSubmit} noValidate>
           <div className="field">
             <label htmlFor="tag-project-modal">Project</label>
-            <select
-              id="tag-project-modal"
-              name="projectId"
-              value={form.projectId}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  projectId: event.target.value,
-                }))
-              }
-              required
-              disabled={submitting}
+            <div 
+              style={{
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                backgroundColor: '#f9fafb',
+                color: '#374151',
+                fontSize: '14px',
+              }}
             >
-              <option value="">Select project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
+              {projects.find(p => p.id === form.projectId)?.name || 'No project selected'}
+            </div>
           </div>
           <div className="field">
             <label htmlFor="tag-title-modal">Title</label>
