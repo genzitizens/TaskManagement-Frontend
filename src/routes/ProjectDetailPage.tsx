@@ -1030,7 +1030,8 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
                       backgroundColor: '#fff',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                    {/* Color and Title in same line */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                       <div 
                         style={{
                           width: '16px',
@@ -1038,20 +1039,21 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
                           backgroundColor: task.color || '#3b82f6',
                           borderRadius: '4px',
                           flexShrink: 0,
-                          marginTop: '2px',
                         }}
                       />
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>
-                          {task.title}
-                        </h4>
-                        {task.description && (
-                          <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
-                            {task.description}
-                          </p>
-                        )}
-                      </div>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: '#111827' }}>
+                        {task.title}
+                      </h4>
                     </div>
+                    
+                    {/* Description on separate line */}
+                    {task.description && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <p style={{ margin: 0, fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
+                          {task.description}
+                        </p>
+                      </div>
+                    )}
                     
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', fontSize: '14px' }}>
                       <div>
