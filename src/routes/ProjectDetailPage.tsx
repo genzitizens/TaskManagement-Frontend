@@ -320,8 +320,8 @@ export default function ProjectDetailPage() {
     const rangeMap = new Map<string, { start: number; end: number }>();
 
     timelineEntries.forEach(({ item }) => {
-      const rawStartDate = item.startAt ? dayjs(item.startAt, 'DD-MM-YYYY', true) : null;
-      const rawEndDate = item.endAt ? dayjs(item.endAt, 'DD-MM-YYYY', true) : null;
+      const rawStartDate = item.startAt ? dayjs(item.startAt) : null;
+      const rawEndDate = item.endAt ? dayjs(item.endAt) : null;
 
       const hasValidStart = rawStartDate?.isValid() ?? false;
       const hasValidEnd = rawEndDate?.isValid() ?? false;
@@ -623,16 +623,12 @@ export default function ProjectDetailPage() {
                               ) : null}
                               {item.startAt ? (
                                 <span className="project-grid__event-description">
-                                  Starts: {dayjs(item.startAt, 'DD-MM-YYYY', true).isValid() 
-                                    ? dayjs(item.startAt, 'DD-MM-YYYY', true).format('MMM D, YYYY') 
-                                    : 'Invalid date'}
+                                  Starts: {dayjs(item.startAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
                               {item.endAt ? (
                                 <span className="project-grid__event-description">
-                                  Due: {dayjs(item.endAt, 'DD-MM-YYYY', true).isValid() 
-                                    ? dayjs(item.endAt, 'DD-MM-YYYY', true).format('MMM D, YYYY') 
-                                    : 'Invalid date'}
+                                  Due: {dayjs(item.endAt).format('MMM D, YYYY')}
                                 </span>
                               ) : null}
                               {Number.isFinite(item.duration) ? (
