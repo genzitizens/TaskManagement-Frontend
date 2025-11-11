@@ -923,22 +923,41 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
         position: 'fixed',
         left: position.x + 10,
         top: position.y - 10,
-        background: 'rgba(0, 0, 0, 0.9)',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
-        padding: '12px',
-        borderRadius: '6px',
+        padding: '0',
+        borderRadius: '12px',
         fontSize: '14px',
-        maxWidth: '300px',
+        maxWidth: '320px',
         zIndex: 1000,
         pointerEvents: 'none',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        overflow: 'hidden'
       }}
     >
-      <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
-        {isTask ? '📋' : '🏷️'} {item.title}
+      <div style={{ 
+        fontWeight: '600', 
+        padding: '12px 16px',
+        fontSize: '15px',
+        letterSpacing: '0.3px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        borderBottom: resolvedNote?.body ? '1px solid rgba(255, 255, 255, 0.25)' : 'none'
+      }}>
+        <span style={{ fontSize: '16px' }}>{isTask ? '📋' : '🏷️'}</span>
+        {item.title}
       </div>
       {resolvedNote?.body && (
-        <div style={{ fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>
+        <div style={{ 
+          fontSize: '13px',
+          lineHeight: '1.5',
+          whiteSpace: 'pre-wrap',
+          background: 'rgba(0, 0, 0, 0.2)',
+          padding: '12px 16px'
+        }}>
           {resolvedNote.body.length > 100 
             ? `${resolvedNote.body.substring(0, 100)}...` 
             : resolvedNote.body}
