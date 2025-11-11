@@ -632,10 +632,6 @@ export default function ProjectDetailPage() {
                     return (
                       <tr 
                         key={item.id}
-                        onMouseEnter={(e) => handleTimelineHover(entry, e)}
-                        onMouseLeave={handleTimelineLeave}
-                        onMouseMove={(e) => setTooltipPosition({ x: e.clientX, y: e.clientY })}
-                        style={{ cursor: 'pointer' }}
                       >
                         <th scope="row" className={rowHeaderClassName}>
                           <div className="project-grid__row-content">
@@ -721,8 +717,16 @@ export default function ProjectDetailPage() {
                           ]
                             .filter(Boolean)
                             .join(' ');
+                          
+                          const cellProps = isActive ? {
+                            onMouseEnter: (e: React.MouseEvent) => handleTimelineHover(entry, e),
+                            onMouseLeave: handleTimelineLeave,
+                            onMouseMove: (e: React.MouseEvent) => setTooltipPosition({ x: e.clientX, y: e.clientY }),
+                            style: { cursor: 'pointer' }
+                          } : {};
+                          
                           return (
-                            <td key={dayNumber} className={cellClassName}>
+                            <td key={dayNumber} className={cellClassName} {...cellProps}>
                               {isEndDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
                             </td>
                           );
