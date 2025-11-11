@@ -13,9 +13,10 @@ function renderApp() {
 }
 
 describe('App', () => {
-  it('renders navigation links', () => {
-    const { getByRole, queryByRole } = renderApp();
-    expect(getByRole('link', { name: /menu/i })).toBeInTheDocument();
-    expect(queryByRole('link', { name: /tasks/i })).not.toBeInTheDocument();
+  it('renders login form by default', () => {
+    const { getByLabelText, getByRole } = renderApp();
+    expect(getByLabelText(/username/i)).toBeInTheDocument();
+    expect(getByLabelText(/password/i)).toBeInTheDocument();
+    expect(getByRole('button', { name: /log in/i })).toBeInTheDocument();
   });
 });
