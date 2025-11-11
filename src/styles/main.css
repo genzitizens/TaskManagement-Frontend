@@ -74,8 +74,16 @@ body {
 .app-shell--wide {
   width: 100%;
   max-width: none;
-  padding-left: clamp(0.75rem, 3vw, 2rem);
-  padding-right: clamp(0.75rem, 3vw, 2rem);
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Specific fix for 1080p and similar resolutions */
+@media (min-width: 1800px) and (max-width: 1920px) {
+  .app-shell--wide {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 }
 
 .app-header {
