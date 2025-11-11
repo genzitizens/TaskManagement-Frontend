@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useProjects } from '../hooks/useProjects';
 import ProjectModal from '../components/ProjectModal';
 import DeleteProjectModal from '../components/DeleteProjectModal';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 
 dayjs.extend(relativeTime);
+dayjs.extend(customParseFormat);
 
 export default function MenuPage() {
   const navigate = useNavigate();
@@ -123,7 +125,8 @@ export default function MenuPage() {
               <p className="menu-card-meta">
                 Started {(() => {
                   console.log('BEFORE - Project:', project.name, 'Raw startDate:', project.startDate, 'Type:', typeof project.startDate);
-                  const dayjsDate = dayjs(project.startDate);
+                  // Parse with specific DD-MM-YYYY format
+                  const dayjsDate = dayjs(project.startDate, 'DD-MM-YYYY', true);
                   console.log('AFTER - Dayjs object isValid:', dayjsDate.isValid(), 'Formatted result:', dayjsDate.format('D MMMM YYYY'));
                   return dayjsDate.format('D MMMM YYYY');
                 })()}
