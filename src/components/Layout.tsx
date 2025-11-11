@@ -8,7 +8,7 @@ export default function Layout() {
     <div className={`app-shell${isProjectDetailPage ? ' app-shell--wide' : ''}`}>
       <header className="app-header">
         <h1>Task Management System</h1>
-        <p className="app-tagline">Projects at a glance.</p>
+        {/* <p className="app-tagline">Projects at a glance.</p> */}
       </header>
       <nav className="app-nav">
         <NavLink to="/" end>
@@ -19,7 +19,7 @@ export default function Layout() {
         <Outlet />
       </main>
       <footer className="app-footer">
-        <small>API base: {import.meta.env.VITE_API_URL ?? 'http://localhost:8002'}</small>
+        {/* <small>API base: {import.meta.env.VITE_API_URL ?? 'http://localhost:8002'}</small> */}
       </footer>
     </div>
   );

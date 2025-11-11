@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -103,7 +103,10 @@ export default function MenuPage() {
     <div className="menu-page">
       <div className="menu-header">
         <div>
-          <h2>Menu</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <DashboardIcon style={{ width: '28px', height: '28px' }} aria-hidden="true" />
+            Dashboard
+          </h2>
           <p className="menu-subtitle">Browse your projects and jump into the details.</p>
         </div>
         <button type="button" onClick={openCreateModal}>
@@ -178,5 +181,13 @@ export default function MenuPage() {
         onConfirm={handleDeleteConfirm}
       />
     </div>
+  );
+}
+
+function DashboardIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+    </svg>
   );
 }
