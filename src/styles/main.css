@@ -7,6 +7,15 @@
   background-color: #f8fafc;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 /* Prevent unwanted text selection and cursor artifacts */
 * {
   -webkit-user-select: none;
@@ -620,7 +629,8 @@ button:disabled {
   background: #fff;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
   width: 100%;
-  /* margin-inline: 10px; */
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .project-grid__table-wrapper {
@@ -628,6 +638,7 @@ button:disabled {
   --project-grid-cell-width: 45px;
   overflow-x: auto;
   overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
   width: 100%;
   max-width: 95vw;
   /* margin-inline: auto; */
@@ -844,13 +855,15 @@ button:disabled {
 /* Tablet and below (768px) */
 @media (max-width: 768px) {
   .app-shell {
-    padding: 1.5rem 1rem 2rem;
+    padding: 1rem 0.75rem 1.5rem;
     gap: 1rem;
   }
 
   .app-shell--wide {
-    width: calc(100% - 16px);
-    padding: 1rem 0.75rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem 0.5rem;
+    box-sizing: border-box;
   }
 
   /* Menu Page Header */
@@ -955,11 +968,17 @@ button:disabled {
   .project-grid {
     font-size: 0.75rem !important;
     border-radius: 8px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
   }
 
   .project-grid__table-wrapper {
     --project-grid-row-header-width: 100px !important;
     --project-grid-cell-width: 50px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .project-grid__row-header {
@@ -1057,11 +1076,15 @@ button:disabled {
   /* Project Grid Mobile */
   .project-grid {
     font-size: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .project-grid__table-wrapper {
     --project-grid-row-header-width: 80px !important;
     --project-grid-cell-width: 40px !important;
+    width: 100% !important;
   }
 
   .project-grid__row-header {
