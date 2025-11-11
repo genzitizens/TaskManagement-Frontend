@@ -605,3 +605,51 @@ button:disabled {
   color: #64748b;
   font-style: italic;
 }
+
+/* Inspect Modal Styles */
+.inspect-modal {
+  max-width: 600px;
+}
+
+.inspect-modal__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1rem;
+}
+
+.inspect-modal__section {
+  padding: 1rem 0;
+}
+
+.inspect-modal__label {
+  margin: 0 0 0.5rem 0;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.inspect-modal__value {
+  margin: 0;
+  color: #334155;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.inspect-modal__notes {
+  white-space: pre-wrap;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+}
+
+.inspect-modal__divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0;
+}

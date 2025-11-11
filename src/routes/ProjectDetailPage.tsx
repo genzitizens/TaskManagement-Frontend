@@ -286,6 +286,8 @@ export default function ProjectDetailPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [hoveredItem, setHoveredItem] = useState<TimelineEntry | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isInspectModalOpen, setIsInspectModalOpen] = useState(false);
+  const [itemToInspect, setItemToInspect] = useState<TimelineEntry | null>(null);
 
   const projectStart = useMemo(() => {
     if (!project?.startDate) {
@@ -556,6 +558,16 @@ export default function ProjectDetailPage() {
     setHoveredItem(null);
   };
 
+  const handleInspectRequest = (entry: TimelineEntry) => {
+    setItemToInspect(entry);
+    setIsInspectModalOpen(true);
+  };
+
+  const handleCloseInspectModal = () => {
+    setIsInspectModalOpen(false);
+    setItemToInspect(null);
+  };
+
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
   const projectDescription =
     projectError && projectErrorData instanceof Error ? projectErrorData.message : null;
@@ -666,6 +678,14 @@ export default function ProjectDetailPage() {
                                   <button
                                     type="button"
                                     className="project-grid__icon-button"
+                                    onClick={() => handleInspectRequest(entry)}
+                                    aria-label={`View details for ${item.title}`}
+                                  >
+                                    <EyeIcon aria-hidden="true" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="project-grid__icon-button"
                                     onClick={() => handleEditTaskRequest(item.id)}
                                     aria-label={`Edit ${item.title}`}
                                   >
@@ -682,6 +702,14 @@ export default function ProjectDetailPage() {
                                 </>
                               ) : (
                                 <>
+                                  <button
+                                    type="button"
+                                    className="project-grid__icon-button"
+                                    onClick={() => handleInspectRequest(entry)}
+                                    aria-label={`View details for ${item.title}`}
+                                  >
+                                    <EyeIcon aria-hidden="true" />
+                                  </button>
                                   <button
                                     type="button"
                                     className="project-grid__icon-button"
@@ -803,6 +831,12 @@ export default function ProjectDetailPage() {
         onCancel={handleCloseDeleteTagModal}
         onConfirm={handleDeleteTagConfirm}
       />
+      <InspectModal
+        isOpen={isInspectModalOpen}
+        entry={itemToInspect}
+        taskNotes={taskNotes}
+        onClose={handleCloseInspectModal}
+      />
     </div>
   );
 }
@@ -846,6 +880,130 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
             : resolvedNote.body}
         </div>
       )}
+    </div>
+  );
+}
+
+interface InspectModalProps {
+  isOpen: boolean;
+  entry: TimelineEntry | null;
+  taskNotes: Record<string, TaskNoteCacheEntry>;
+  onClose: () => void;
+}
+
+function InspectModal({ isOpen, entry, taskNotes, onClose }: InspectModalProps) {
+  if (!isOpen || !entry) {
+    return null;
+  }
+
+  const { item } = entry;
+  const isTask = entry.entryType === 'task';
+  const resolvedNote = isTask ? entry.item.note ?? taskNotes[item.id]?.note ?? null : null;
+  
+  // Calculate duration
+  const duration = (() => {
+    if (Number.isFinite(item.duration) && item.duration! > 0) {
+      return `${item.duration} ${item.duration === 1 ? 'day' : 'days'}`;
+    }
+    
+    if (item.startAt && item.endAt) {
+      const start = dayjs(item.startAt);
+      const end = dayjs(item.endAt);
+      if (start.isValid() && end.isValid()) {
+        const diff = end.diff(start, 'day') + 1;
+        return `${diff} ${diff === 1 ? 'day' : 'days'}`;
+      }
+    }
+    
+    return 'Not specified';
+  })();
+
+  const handleBackdropClick = () => {
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal inspect-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="inspect-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="inspect-modal-title">
+            {isTask ? '📋' : '🏷️'} {isTask ? 'Task' : 'Tag'} Details
+          </h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close details view"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="inspect-modal__content">
+          <div className="inspect-modal__section">
+            <h4 className="inspect-modal__label">Title</h4>
+            <p className="inspect-modal__value">{item.title}</p>
+          </div>
+
+          <div className="inspect-modal__divider" />
+
+          <div className="inspect-modal__section">
+            <h4 className="inspect-modal__label">Description</h4>
+            <p className="inspect-modal__value">
+              {item.description || 'No description provided'}
+            </p>
+          </div>
+
+          <div className="inspect-modal__divider" />
+
+          <div className="inspect-modal__section">
+            <h4 className="inspect-modal__label">Start Date</h4>
+            <p className="inspect-modal__value">
+              {item.startAt 
+                ? dayjs(item.startAt).format('MMMM D, YYYY') 
+                : 'Not specified'
+              }
+            </p>
+          </div>
+
+          <div className="inspect-modal__divider" />
+
+          <div className="inspect-modal__section">
+            <h4 className="inspect-modal__label">End Date</h4>
+            <p className="inspect-modal__value">
+              {item.endAt 
+                ? dayjs(item.endAt).format('MMMM D, YYYY') 
+                : 'Not specified'
+              }
+            </p>
+          </div>
+
+          <div className="inspect-modal__divider" />
+
+          <div className="inspect-modal__section">
+            <h4 className="inspect-modal__label">Duration</h4>
+            <p className="inspect-modal__value">{duration}</p>
+          </div>
+
+          {resolvedNote?.body && (
+            <>
+              <div className="inspect-modal__divider" />
+              <div className="inspect-modal__section">
+                <h4 className="inspect-modal__label">Notes</h4>
+                <p className="inspect-modal__value inspect-modal__notes">
+                  {resolvedNote.body}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1014,6 +1172,14 @@ function TrashIcon(props: SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
       <path d="M5 7h14l-1 14H6L5 7zm4 2v10h2V9H9zm4 0v10h2V9h-2z" />
       <path d="M9 4h6l1 1h5v2H3V5h5l1-1z" />
+    </svg>
+  );
+}
+
+function EyeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
     </svg>
   );
 }
