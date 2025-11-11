@@ -575,43 +575,42 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="card project-detail">
+      <button
+        type="button"
+        onClick={() => navigate('/')}
+        className="back-button"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 12px',
+          background: 'none',
+          border: '1px solid #d1d5db',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          color: '#374151',
+          fontSize: '14px',
+          transition: 'all 0.2s ease',
+          marginBottom: '16px',
+          alignSelf: 'flex-start',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f3f4f6';
+          e.currentTarget.style.borderColor = '#9ca3af';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'transparent';
+          e.currentTarget.style.borderColor = '#d1d5db';
+        }}
+        aria-label="Back to Dashboard"
+      >
+        <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+        Back to Dashboard
+      </button>
       <div className="project-detail__header">
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="back-button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 12px',
-              background: 'none',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              color: '#374151',
-              fontSize: '14px',
-              transition: 'all 0.2s ease',
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f3f4f6';
-              e.currentTarget.style.borderColor = '#9ca3af';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.borderColor = '#d1d5db';
-            }}
-            aria-label="Back to Dashboard"
-          >
-            <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
-            Back to Dashboard
-          </button>
-          <div style={{ flex: 1 }}>
-            <h2 className="project-detail__title">{projectTitle}</h2>
-            {projectError ? <p className="error-message">{projectDescription}</p> : null}
-          </div>
+        <div>
+          <h2 className="project-detail__title">{projectTitle}</h2>
+          {projectError ? <p className="error-message">{projectDescription}</p> : null}
         </div>
 
       </div>
