@@ -284,6 +284,8 @@ export default function ProjectDetailPage() {
   const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
   const [tagDeleteError, setTagDeleteError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<TimelineEntry | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const projectStart = useMemo(() => {
     if (!project?.startDate) {
@@ -539,6 +541,15 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleTimelineHover = (entry: TimelineEntry, event: React.MouseEvent) => {
+    setHoveredItem(entry);
+    setTooltipPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  const handleTimelineLeave = () => {
+    setHoveredItem(null);
+  };
+
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
   const projectDescription =
     projectError && projectErrorData instanceof Error ? projectErrorData.message : null;
@@ -613,7 +624,13 @@ export default function ProjectDetailPage() {
                       .filter(Boolean)
                       .join(' ');
                     return (
-                      <tr key={item.id}>
+                      <tr 
+                        key={item.id}
+                        onMouseEnter={(e) => handleTimelineHover(entry, e)}
+                        onMouseLeave={handleTimelineLeave}
+                        onMouseMove={(e) => setTooltipPosition({ x: e.clientX, y: e.clientY })}
+                        style={{ cursor: 'pointer' }}
+                      >
                         <th scope="row" className={rowHeaderClassName}>
                           <div className="project-grid__row-content">
                             <div className="project-grid__event-text">
@@ -712,6 +729,13 @@ export default function ProjectDetailPage() {
             </table>
           </div>
         </div>
+        {hoveredItem && (
+          <TimelineTooltip 
+            entry={hoveredItem}
+            position={tooltipPosition}
+            taskNotes={taskNotes}
+          />
+        )}
         {showEmptyState ? (
           <p className="project-detail__empty">No events yet. Use Add Tag or Add Event to create one.</p>
         ) : null}
@@ -769,6 +793,65 @@ export default function ProjectDetailPage() {
         onCancel={handleCloseDeleteTagModal}
         onConfirm={handleDeleteTagConfirm}
       />
+    </div>
+  );
+}
+
+interface TimelineTooltipProps {
+  entry: TimelineEntry;
+  position: { x: number; y: number };
+  taskNotes: Record<string, TaskNoteCacheEntry>;
+}
+
+function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
+  const { item } = entry;
+  const isTask = entry.entryType === 'task';
+  const resolvedNote = isTask ? entry.item.note ?? taskNotes[item.id]?.note ?? null : null;
+
+  return (
+    <div
+      className="timeline-tooltip"
+      style={{
+        position: 'fixed',
+        left: position.x + 10,
+        top: position.y - 10,
+        background: 'rgba(0, 0, 0, 0.9)',
+        color: 'white',
+        padding: '12px',
+        borderRadius: '6px',
+        fontSize: '14px',
+        maxWidth: '300px',
+        zIndex: 1000,
+        pointerEvents: 'none',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+      }}
+    >
+      <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+        {isTask ? '📋' : '🏷️'} {item.title}
+      </div>
+      {item.description && (
+        <div style={{ marginBottom: '6px', color: '#ccc' }}>
+          {item.description}
+        </div>
+      )}
+      <div style={{ fontSize: '12px', color: '#aaa' }}>
+        {item.startAt && (
+          <div>Start: {dayjs(item.startAt).format('MMM D, YYYY')}</div>
+        )}
+        {item.endAt && (
+          <div>Due: {dayjs(item.endAt).format('MMM D, YYYY')}</div>
+        )}
+        {Number.isFinite(item.duration) && (
+          <div>Duration: {item.duration} {item.duration === 1 ? 'day' : 'days'}</div>
+        )}
+        {resolvedNote?.body && (
+          <div style={{ marginTop: '6px', fontStyle: 'italic' }}>
+            Note: {resolvedNote.body.length > 100 
+              ? `${resolvedNote.body.substring(0, 100)}...` 
+              : resolvedNote.body}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
