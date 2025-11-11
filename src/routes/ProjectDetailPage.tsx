@@ -655,7 +655,6 @@ export default function ProjectDetailPage() {
       <section className="project-detail__events">
         <header className="project-detail__events-header">
           <h3>Project timeline</h3>
-          <p>Scroll horizontally to explore the timeline. The highlighted cell marks each event.</p>
           {projectStartLabel ? (
             <p className="project-detail__events-meta">
               Project start date:{' '}
