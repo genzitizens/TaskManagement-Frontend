@@ -121,7 +121,7 @@ export default function MenuPage() {
             <header className="menu-card-header">
               <h3>{project.name}</h3>
               <p className="menu-card-meta">
-                Started {dayjs(project.startDate).format('MMM D, YYYY')}
+                Started {dayjs(project.startDate).format('D MMMM YYYY')}
                 <span aria-hidden="true"> • </span>
                 Updated {dayjs(project.updatedAt).fromNow()}
               </p>
