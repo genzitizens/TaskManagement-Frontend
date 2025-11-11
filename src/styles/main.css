@@ -74,8 +74,8 @@ body {
 .app-shell--wide {
   width: 100%;
   max-width: none;
-  padding-left: clamp(1rem, 2vw, 2rem);
-  padding-right: clamp(1rem, 2vw, 2rem);
+  padding-left: clamp(0.75rem, 3vw, 2rem);
+  padding-right: clamp(0.75rem, 3vw, 2rem);
 }
 
 .app-header {
