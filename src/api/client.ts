@@ -23,7 +23,7 @@ function buildUrl(path: string, qp?: RequestOptions['searchParams']) {
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { searchParams, headers, ...init } = options
   const url = buildUrl(path, searchParams)
-  console.log('API →', init.method ?? 'GET', url)
+  // console.log('API →', init.method ?? 'GET', url)
 
   const res = await fetch(url, {
     headers: {
@@ -36,7 +36,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (res.status === 204) return undefined as T
   const text = await res.clone().text()
-  console.log('API ←', res.status, res.statusText, text)
+  // console.log('API ←', res.status, res.statusText, text)
   if (!res.ok) throw new Error(text || `${res.status} ${res.statusText}`)
   try { return await res.json() as T } catch { return text as unknown as T }
 }
