@@ -7,6 +7,55 @@
   background-color: #f8fafc;
 }
 
+/* Prevent unwanted text selection and cursor artifacts */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Allow text selection only where needed */
+input, textarea, [contenteditable="true"], .selectable-text,
+.project-detail__title, .project-detail__description, 
+.project-grid__event-name, .project-grid__event-description,
+.inspect-modal__value, .inspect-modal__notes,
+.task-list-modal h4, .task-list-modal p, .task-list-modal div,
+.menu-card h3, .menu-card-description {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Ensure buttons and interactive elements don't show text cursor */
+button, .button, .modal-close, .project-grid__icon-button, .back-button {
+  cursor: pointer !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Prevent cursor artifacts on hover */
+*:not(input):not(textarea):not([contenteditable="true"]) {
+  cursor: default;
+}
+
+/* Specific cursor rules for interactive elements */
+.project-grid__cell--active {
+  cursor: pointer !important;
+}
+
+.timeline-tooltip {
+  pointer-events: none !important;
+}
+
+.modal-backdrop {
+  cursor: default;
+}
+
 body {
   margin: 0;
 }
