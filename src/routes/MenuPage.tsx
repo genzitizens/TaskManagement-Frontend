@@ -214,7 +214,7 @@ export default function MenuPage() {
         rowGap: '32px'
       }}>
         {projects.map((project) => (
-          <div key={project.id} style={{ marginBottom: '16px' }}>
+          <div key={project.id} style={{ padding: '8px' }}>
             <article 
               className="menu-card"
               style={{
