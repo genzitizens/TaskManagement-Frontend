@@ -18,7 +18,7 @@ import type { NoteRes, TagCreateInput, TagRes, TaskRes, TaskWithNoteInput } from
 
 dayjs.extend(customParseFormat);
 
-const MINIMUM_DAY_COLUMNS = 100;
+const MINIMUM_DAY_COLUMNS = 30;
 const MOBILE_COLUMN_COUNT = 20;
 const TABLET_COLUMN_COUNT = 24;
 const DESKTOP_COLUMN_COUNT = 30;
@@ -318,7 +318,7 @@ export default function ProjectDetailPage() {
       };
     }
 
-    let maxDay = MINIMUM_DAY_COLUMNS;
+    let maxDay = 0;
     const rangeMap = new Map<string, { start: number; end: number }>();
 
     timelineEntries.forEach(({ item }) => {
@@ -373,7 +373,13 @@ export default function ProjectDetailPage() {
       }
     });
 
-    return { columnCount: maxDay, taskDayRange: rangeMap };
+    // Use the maximum day from tasks/tags, but ensure we have at least the minimum
+    const finalColumnCount = Math.max(maxDay, MINIMUM_DAY_COLUMNS);
+    
+    // Add some padding (10 days) to the end for better visualization
+    const paddedColumnCount = finalColumnCount + 10;
+
+    return { columnCount: paddedColumnCount, taskDayRange: rangeMap };
   }, [projectStart, timelineEntries]);
 
   const dayColumns = useMemo(
@@ -829,29 +835,13 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
       <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
         {isTask ? '📋' : '🏷️'} {item.title}
       </div>
-      {item.description && (
-        <div style={{ marginBottom: '6px', color: '#ccc' }}>
-          {item.description}
+      {resolvedNote?.body && (
+        <div style={{ fontStyle: 'italic' }}>
+          {resolvedNote.body.length > 100 
+            ? `${resolvedNote.body.substring(0, 100)}...` 
+            : resolvedNote.body}
         </div>
       )}
-      <div style={{ fontSize: '12px', color: '#aaa' }}>
-        {item.startAt && (
-          <div>Start: {dayjs(item.startAt).format('MMM D, YYYY')}</div>
-        )}
-        {item.endAt && (
-          <div>Due: {dayjs(item.endAt).format('MMM D, YYYY')}</div>
-        )}
-        {Number.isFinite(item.duration) && (
-          <div>Duration: {item.duration} {item.duration === 1 ? 'day' : 'days'}</div>
-        )}
-        {resolvedNote?.body && (
-          <div style={{ marginTop: '6px', fontStyle: 'italic' }}>
-            Note: {resolvedNote.body.length > 100 
-              ? `${resolvedNote.body.substring(0, 100)}...` 
-              : resolvedNote.body}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
