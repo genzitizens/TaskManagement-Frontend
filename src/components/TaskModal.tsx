@@ -374,7 +374,7 @@ export default function TaskModal({
               />{' '}
               Activity task
             </label>
-          </div>
+          </div> */}
           <div className="field">
             <label>
               <input
@@ -390,7 +390,7 @@ export default function TaskModal({
               />{' '}
               Add note
             </label>
-          </div> */}
+          </div>
           {form.hasNote ? (
             <div className="field">
               <label htmlFor="task-note-modal">Note</label>
