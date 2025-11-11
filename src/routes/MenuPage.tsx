@@ -132,7 +132,9 @@ export default function MenuPage() {
                 })()}
                 <span aria-hidden="true"> • </span>
                 Updated {(() => {
+                  console.log('UPDATED - Project:', project.name, 'Raw updatedAt:', project.updatedAt, 'Type:', typeof project.updatedAt);
                   const dayjsDate = dayjs(project.updatedAt, 'DD-MM-YYYY', true);
+                  console.log('UPDATED - Dayjs object isValid:', dayjsDate.isValid(), 'fromNow result:', dayjsDate.fromNow());
                   return dayjsDate.isValid() ? dayjsDate.fromNow() : 'Invalid date';
                 })()}
               </p>
