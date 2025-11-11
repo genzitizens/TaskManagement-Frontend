@@ -35,6 +35,7 @@ const taskSchema = z.object({
   startAt: z.string().min(1, 'Start date is required'),
   endAt: z.string().min(1, 'End date is required'),
   isActivity: z.boolean().optional(),
+  color: z.string().optional(),
 });
 
 interface FormState {
@@ -46,6 +47,7 @@ interface FormState {
   isActivity: boolean;
   hasNote: boolean;
   note: string;
+  color: string;
 }
 
 const formatDateLocal = (value: string) => {
@@ -64,6 +66,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
       isActivity: toBoolean(task.isActivity),
       hasNote: Boolean(task.note),
       note: task.note?.body ?? '',
+      color: task.color ?? '#3b82f6', // Default blue color
     };
   }
 
@@ -76,6 +79,7 @@ const createInitialState = (projectId?: string, task?: TaskRes | null): FormStat
     isActivity: false,
     hasNote: false,
     note: '',
+    color: '#3b82f6', // Default blue color
   };
 };
 
@@ -152,6 +156,7 @@ export default function TaskModal({
       startAt: form.startAt,
       endAt: form.endAt,
       isActivity: form.isActivity,
+      color: form.color,
     });
 
     if (!result.success) {
@@ -358,6 +363,22 @@ export default function TaskModal({
                 }))
               }
               required
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="task-color-modal">Color</label>
+            <input
+              id="task-color-modal"
+              name="color"
+              type="color"
+              value={form.color}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  color: event.target.value,
+                }))
+              }
               disabled={submitting}
             />
           </div>

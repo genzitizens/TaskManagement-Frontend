@@ -33,6 +33,7 @@ const tagSchema = z.object({
     .optional(),
   startAt: z.string().min(1, 'Start date is required'),
   endAt: z.string().min(1, 'End date is required'),
+  color: z.string().optional(),
 });
 
 interface FormState {
@@ -41,6 +42,7 @@ interface FormState {
   description: string;
   startAt: string;
   endAt: string;
+  color: string;
 }
 
 const toDateInputValue = (value: string) => {
@@ -56,6 +58,7 @@ const createInitialState = (projectId?: string, tag?: TagRes | null): FormState 
       description: tag.description ?? '',
       startAt: toDateInputValue(tag.startAt),
       endAt: toDateInputValue(tag.endAt),
+      color: tag.color ?? '#10b981', // Default green color for tags
     };
   }
 
@@ -65,6 +68,7 @@ const createInitialState = (projectId?: string, tag?: TagRes | null): FormState 
     description: '',
     startAt: '',
     endAt: '',
+    color: '#10b981', // Default green color for tags
   };
 };
 
@@ -134,6 +138,7 @@ export default function TagModal({
       description: form.description.trim() || undefined,
       startAt: form.startAt,
       endAt: form.endAt,
+      color: form.color,
     });
 
     if (!result.success) {
@@ -322,6 +327,22 @@ export default function TagModal({
                 }))
               }
               required
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="tag-color-modal">Color</label>
+            <input
+              id="tag-color-modal"
+              name="color"
+              type="color"
+              value={form.color}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  color: event.target.value,
+                }))
+              }
               disabled={submitting}
             />
           </div>

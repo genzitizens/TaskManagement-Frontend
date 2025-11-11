@@ -19,6 +19,7 @@ export interface TaskRes {
   createdAt: string;
   updatedAt: string;
   note?: NoteRes | null;
+  color?: string;
 }
 
 export interface TagRes {
@@ -31,6 +32,7 @@ export interface TagRes {
   endAt: string;
   createdAt: string;
   updatedAt: string;
+  color?: string;
 }
 
 export interface NoteRes {
@@ -76,6 +78,7 @@ export interface TaskCreateInput {
   endAt: string;
   start_day: number;
   end_day: number;
+  color?: string;
 }
 
 export type TaskUpdateInput = TaskCreateInput;
@@ -90,6 +93,7 @@ export interface TagCreateInput {
   start_day: number;
   end_day: number;
   isActivity?: boolean;
+  color?: string;
 }
 
 export type TagUpdateInput = TagCreateInput;

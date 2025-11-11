@@ -734,7 +734,10 @@ export default function ProjectDetailPage() {
                             onMouseEnter: (e: React.MouseEvent) => handleTimelineHover(entry, e),
                             onMouseLeave: handleTimelineLeave,
                             onMouseMove: (e: React.MouseEvent) => setTooltipPosition({ x: e.clientX, y: e.clientY }),
-                            style: { cursor: 'pointer' }
+                            style: { 
+                              cursor: 'pointer',
+                              backgroundColor: item.color || (isTag ? '#10b981' : '#3b82f6'),
+                            }
                           } : {};
                           
                           return (
