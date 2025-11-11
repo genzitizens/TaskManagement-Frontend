@@ -214,21 +214,21 @@ export default function MenuPage() {
         rowGap: '32px'
       }}>
         {projects.map((project) => (
-          <article 
-            key={project.id} 
-            className="menu-card"
-            style={{
-              background: 'white',
-              borderRadius: '12px',
-              padding: '24px',
-              border: '1px solid #e5e7eb',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              display: 'flex',
-              flexDirection: 'column',
-              height: '100%'
-            }}
+          <div key={project.id} style={{ marginBottom: '16px' }}>
+            <article 
+              className="menu-card"
+              style={{
+                background: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                border: '1px solid #e5e7eb',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-4px)';
               e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 0, 0, 0.15)';
@@ -394,6 +394,7 @@ export default function MenuPage() {
               </button>
             </div>
           </article>
+          </div>
         ))}
       </div>
 
