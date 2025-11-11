@@ -9,14 +9,16 @@ dayjs.extend(customParseFormat);
 const API_START_DATE_FORMAT = 'DD-MM-YYYY';
 
 const parseProjectStartDate = (value: string) => {
-  const isoParsed = dayjs(value);
-  if (isoParsed.isValid()) {
-    return isoParsed;
-  }
-
+  // Try DD-MM-YYYY format first since that's what the backend sends
   const apiParsed = dayjs(value, API_START_DATE_FORMAT, true);
   if (apiParsed.isValid()) {
     return apiParsed;
+  }
+
+  // Fallback to ISO parsing
+  const isoParsed = dayjs(value);
+  if (isoParsed.isValid()) {
+    return isoParsed;
   }
 
   return null;
