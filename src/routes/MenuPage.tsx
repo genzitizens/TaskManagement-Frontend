@@ -210,7 +210,8 @@ export default function MenuPage() {
       <div className="menu-list" style={{ 
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: '32px'
+        gap: '24px',
+        rowGap: '32px'
       }}>
         {projects.map((project) => (
           <article 
