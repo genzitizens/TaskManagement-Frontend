@@ -576,7 +576,7 @@ export default function ProjectDetailPage() {
   return (
     <div className="card project-detail">
       <div className="project-detail__header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div>
           <button
             type="button"
             onClick={() => navigate('/')}
@@ -593,6 +593,7 @@ export default function ProjectDetailPage() {
               color: '#374151',
               fontSize: '14px',
               transition: 'all 0.2s ease',
+              marginBottom: '12px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = '#f3f4f6';
@@ -607,10 +608,8 @@ export default function ProjectDetailPage() {
             <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
             Back to Dashboard
           </button>
-          <div>
-            <h2 className="project-detail__title">{projectTitle}</h2>
-            {projectError ? <p className="error-message">{projectDescription}</p> : null}
-          </div>
+          <h2 className="project-detail__title">{projectTitle}</h2>
+          {projectError ? <p className="error-message">{projectDescription}</p> : null}
         </div>
 
       </div>
