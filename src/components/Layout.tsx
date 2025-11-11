@@ -7,7 +7,7 @@ export default function Layout() {
   return (
     <div className={`app-shell${isProjectDetailPage ? ' app-shell--wide' : ''}`}>
       <header className="app-header">
-        <h1>Task Management System</h1>
+        {/* <h1>Task Management System</h1> */}
         {/* <p className="app-tagline">Projects at a glance.</p> */}
       </header>
       <main className="app-main"> 

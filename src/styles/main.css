@@ -434,7 +434,8 @@ button:disabled {
 
 .menu-list {
   display: grid;
-  gap: 1rem;
+  gap: 24px;
+  row-gap: 32px;
 }
 
 .menu-card {
