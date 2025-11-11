@@ -85,7 +85,9 @@ export default function ProjectModal({
         description: project.description ?? '',
         startDate: parsedStartDate?.isValid()
           ? parsedStartDate.format('YYYY-MM-DD')
-          : dayjs(project.createdAt).format('YYYY-MM-DD'),
+          : dayjs(project.createdAt, 'DD-MM-YYYY', true).isValid()
+            ? dayjs(project.createdAt, 'DD-MM-YYYY', true).format('YYYY-MM-DD')
+            : dayjs().format('YYYY-MM-DD'),
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());

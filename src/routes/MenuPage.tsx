@@ -131,7 +131,9 @@ export default function MenuPage() {
                   return dayjsDate.format('D MMMM YYYY');
                 })()}
                 <span aria-hidden="true"> • </span>
-                Updated {dayjs(project.updatedAt).fromNow()}
+                Updated {dayjs(project.updatedAt, 'DD-MM-YYYY', true).isValid() 
+                  ? dayjs(project.updatedAt, 'DD-MM-YYYY', true).fromNow() 
+                  : 'Invalid date'}
               </p>
             </header>
             {project.description ? (
