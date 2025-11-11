@@ -354,15 +354,8 @@ export default function TagModal({
                   backgroundColor: form.color,
                   border: '1px solid #ccc',
                   borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '11px',
-                  color: '#666',
                 }}
-              >
-                {form.color}
-              </div>
+              />
             </div>
           </div>
           {formError ? <p className="error-message">{formError}</p> : null}

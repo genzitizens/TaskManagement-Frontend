@@ -390,15 +390,8 @@ export default function TaskModal({
                   backgroundColor: form.color,
                   border: '1px solid #ccc',
                   borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '11px',
-                  color: '#666',
                 }}
-              >
-                {form.color}
-              </div>
+              />
             </div>
           </div>
           {/* <div className="field">

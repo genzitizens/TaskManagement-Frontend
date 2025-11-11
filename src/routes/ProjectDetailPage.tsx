@@ -648,7 +648,18 @@ export default function ProjectDetailPage() {
                         <th scope="row" className={rowHeaderClassName}>
                           <div className="project-grid__row-content">
                             <div className="project-grid__event-text">
-                              <span className="project-grid__event-name">{item.title}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div 
+                                  style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    backgroundColor: item.color || (isTag ? '#10b981' : '#3b82f6'),
+                                    borderRadius: '3px',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                                <span className="project-grid__event-name">{item.title}</span>
+                              </div>
                               {Number.isFinite(item.duration) ? (
                                 <span className="project-grid__event-description">
                                   Duration: {item.duration}{' '}
