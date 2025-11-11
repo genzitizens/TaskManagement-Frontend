@@ -649,27 +649,11 @@ export default function ProjectDetailPage() {
                           <div className="project-grid__row-content">
                             <div className="project-grid__event-text">
                               <span className="project-grid__event-name">{item.title}</span>
-                              {item.description ? (
-                                <span className="project-grid__event-description">{item.description}</span>
-                              ) : null}
-                              {item.startAt ? (
-                                <span className="project-grid__event-description">
-                                  Starts: {dayjs(item.startAt).format('MMM D, YYYY')}
-                                </span>
-                              ) : null}
-                              {item.endAt ? (
-                                <span className="project-grid__event-description">
-                                  Due: {dayjs(item.endAt).format('MMM D, YYYY')}
-                                </span>
-                              ) : null}
                               {Number.isFinite(item.duration) ? (
                                 <span className="project-grid__event-description">
                                   Duration: {item.duration}{' '}
                                   {item.duration === 1 ? 'day' : 'days'}
                                 </span>
-                              ) : null}
-                              {resolvedNote?.body ? (
-                                <span className="project-grid__event-note">Note: {resolvedNote.body}</span>
                               ) : null}
                             </div>
                             <div className="project-grid__event-actions">
@@ -755,7 +739,6 @@ export default function ProjectDetailPage() {
                           
                           return (
                             <td key={dayNumber} className={cellClassName} {...cellProps}>
-                              {isEndDay ? <span className="project-grid__marker" aria-hidden="true" /> : null}
                             </td>
                           );
                         })}
