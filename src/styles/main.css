@@ -838,3 +838,197 @@ button:disabled {
   background: #e5e7eb;
   margin: 0;
 }
+
+/* ==================== Responsive Design ==================== */
+
+/* Tablet and below (768px) */
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 1.5rem 1rem 2rem;
+    gap: 1rem;
+  }
+
+  .app-shell--wide {
+    width: calc(100% - 16px);
+    padding: 1rem 0.75rem;
+  }
+
+  /* Menu Page Header */
+  .menu-header {
+    padding: 24px 20px !important;
+    margin-bottom: 24px !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .menu-header h2 {
+    font-size: 24px !important;
+  }
+
+  .menu-header button {
+    width: 100%;
+    justify-content: center !important;
+  }
+
+  /* Menu Grid */
+  .menu-list {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    row-gap: 16px !important;
+  }
+
+  /* Modal Adjustments */
+  .modal {
+    padding: 1rem !important;
+  }
+
+  .modal-content {
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+  }
+
+  .modal-header {
+    padding: 1.25rem !important;
+  }
+
+  .modal-body {
+    padding: 1.25rem !important;
+  }
+
+  .modal-actions {
+    padding: 1rem 1.25rem !important;
+    flex-direction: column-reverse !important;
+  }
+
+  .modal-actions button {
+    width: 100% !important;
+  }
+
+  /* Project Detail */
+  .project-detail-container {
+    padding: 1rem !important;
+  }
+
+  .project-detail__header {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  .project-detail__actions {
+    flex-direction: column !important;
+  }
+
+  .project-detail__actions button {
+    width: 100% !important;
+  }
+
+  /* Project Grid */
+  .project-grid {
+    font-size: 0.75rem !important;
+  }
+
+  .project-grid__row-header {
+    min-width: 80px !important;
+  }
+
+  .project-grid__cell {
+    min-width: 100px !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Form Elements */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+
+  /* Back Button */
+  .back-button {
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .menu-header {
+    padding: 20px 16px !important;
+    border-radius: 8px !important;
+  }
+
+  .menu-header h2 {
+    font-size: 20px !important;
+    gap: 8px !important;
+  }
+
+  .menu-header h2 svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .menu-header p {
+    font-size: 14px !important;
+  }
+
+  .menu-card {
+    padding: 16px !important;
+  }
+
+  .modal-content {
+    border-radius: 8px !important;
+  }
+
+  .modal-header h2 {
+    font-size: 18px !important;
+  }
+
+  .project-grid {
+    font-size: 0.7rem !important;
+  }
+
+  .project-grid__row-header {
+    min-width: 60px !important;
+    padding: 0.4rem !important;
+  }
+
+  .project-grid__cell {
+    min-width: 80px !important;
+    padding: 0.4rem !important;
+  }
+
+  /* Task List Modal */
+  .task-list-modal .modal-body {
+    padding: 1rem !important;
+  }
+
+  .task-list-item {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  /* Ensure touch-friendly tap targets */
+  button, .button, a {
+    min-height: 44px;
+  }
+
+  .project-grid__icon-button {
+    padding: 0.6rem !important;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .menu-header {
+    padding: 16px 20px !important;
+  }
+
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}

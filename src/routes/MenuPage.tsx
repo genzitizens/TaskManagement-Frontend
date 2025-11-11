@@ -108,7 +108,12 @@ export default function MenuPage() {
         borderRadius: '12px',
         color: 'white',
         marginBottom: '32px',
-        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px'
       }}>
         <div>
           <h2 style={{ 
