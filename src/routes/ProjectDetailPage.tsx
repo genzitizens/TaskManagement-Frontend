@@ -719,7 +719,7 @@ export default function ProjectDetailPage() {
           Add Tag
         </button>
         <button type="button" onClick={handleAddEvent} disabled={!projectId || projectLoading}>
-          Add Event
+          Add Task
         </button>
       </div>
       <TagModal
