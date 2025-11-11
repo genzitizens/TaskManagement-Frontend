@@ -7,7 +7,7 @@ import {
 } from 'react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTags } from '../hooks/useTags';
 import { useTasks } from '../hooks/useTasks';
@@ -54,6 +54,7 @@ function getVisibleColumnCount(width: number) {
 }
 
 export default function ProjectDetailPage() {
+  const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const modalParam = searchParams.get('modal');
@@ -575,9 +576,41 @@ export default function ProjectDetailPage() {
   return (
     <div className="card project-detail">
       <div className="project-detail__header">
-        <div>
-          <h2 className="project-detail__title">{projectTitle}</h2>
-          {projectError ? <p className="error-message">{projectDescription}</p> : null}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="back-button"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 12px',
+              background: 'none',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              color: '#374151',
+              fontSize: '14px',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f3f4f6';
+              e.currentTarget.style.borderColor = '#9ca3af';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }}
+            aria-label="Back to Dashboard"
+          >
+            <ArrowLeftIcon style={{ width: '16px', height: '16px' }} aria-hidden="true" />
+            Back to Dashboard
+          </button>
+          <div>
+            <h2 className="project-detail__title">{projectTitle}</h2>
+            {projectError ? <p className="error-message">{projectDescription}</p> : null}
+          </div>
         </div>
 
       </div>
@@ -1177,6 +1210,14 @@ function EyeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
       <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
     </svg>
   );
 }

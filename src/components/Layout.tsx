@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -10,11 +10,6 @@ export default function Layout() {
         <h1>Task Management System</h1>
         {/* <p className="app-tagline">Projects at a glance.</p> */}
       </header>
-      <nav className="app-nav">
-        <NavLink to="/" end>
-          Menu
-        </NavLink>
-      </nav>
       <main className="app-main"> 
         <Outlet />
       </main>
