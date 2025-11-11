@@ -1048,10 +1048,13 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
                     
                     {/* Description on separate line */}
                     {task.description && (
-                      <div style={{ marginBottom: '12px' }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
+                      <div style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
+                        <div style={{ fontWeight: '500', color: '#374151', marginBottom: '4px', fontSize: '14px' }}>
+                          Description:
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#6b7280', whiteSpace: 'pre-wrap' }}>
                           {task.description}
-                        </p>
+                        </div>
                       </div>
                     )}
                     
