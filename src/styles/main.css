@@ -850,8 +850,22 @@ button:disabled {
 
 .inspect-modal__divider {
   height: 1px;
-  background: #e5e7eb;
+  background: #e2e8f0;
   margin: 0;
+}
+
+/* Action Cell Styles */
+.project-grid__cell {
+  position: relative;
+}
+
+.project-grid__cell--with-action {
+  position: relative;
+}
+
+/* Action View Modal Styles */
+.action-view-content {
+  margin-top: 1rem;
 }
 
 /* ==================== Responsive Design ==================== */

@@ -11,10 +11,12 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useProject } from '../hooks/useProject';
 import { useTags } from '../hooks/useTags';
 import { useTasks } from '../hooks/useTasks';
+import { useAllActions } from '../hooks/useActions';
 import { listNotes } from '../api/notes';
+import { queryClient } from '../queryClient';
 import TaskModal from '../components/TaskModal';
 import TagModal from '../components/TagModal';
-import type { NoteRes, TagCreateInput, TagRes, TaskRes, TaskWithNoteInput } from '../types';
+import type { NoteRes, TagCreateInput, TagRes, TaskRes, TaskWithNoteInput, ActionRes, ActionCreateInput, ActionUpdateInput } from '../types';
 
 dayjs.extend(customParseFormat);
 
@@ -96,6 +98,17 @@ export default function ProjectDetailPage() {
 
   const tasks: TaskRes[] = tasksData?.content ?? [];
   const tags: TagRes[] = tagsData?.content ?? [];
+  
+  // Get all actions for timeline display
+  const taskIds = useMemo(() => tasks.map(task => task.id), [tasks]);
+  const {
+    data: actionsData,
+    isLoading: actionsLoading,
+    isError: actionsError,
+  } = useAllActions(taskIds);
+  
+  const actions: ActionRes[] = actionsData?.content ?? [];
+  
   const timelineEntries = useMemo<TimelineEntry[]>(() => {
     const tagEntries: TimelineEntry[] = tags.map((tag) => ({
       entryType: 'tag',
@@ -296,6 +309,14 @@ export default function ProjectDetailPage() {
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isInspectModalOpen, setIsInspectModalOpen] = useState(false);
   const [itemToInspect, setItemToInspect] = useState<TimelineEntry | null>(null);
+  
+  // Action-related state
+  const [isActionConfirmModalOpen, setIsActionConfirmModalOpen] = useState(false);
+  const [isActionCreateModalOpen, setIsActionCreateModalOpen] = useState(false);
+  const [isActionViewModalOpen, setIsActionViewModalOpen] = useState(false);
+  const [selectedCellInfo, setSelectedCellInfo] = useState<{taskId: string; dayNumber: number} | null>(null);
+  const [actionToView, setActionToView] = useState<ActionRes | null>(null);
+  const [isActionEditMode, setIsActionEditMode] = useState(false);
   const [isTaskListModalOpen, setIsTaskListModalOpen] = useState(false);
 
   const projectStart = useMemo(() => {
@@ -588,6 +609,96 @@ export default function ProjectDetailPage() {
     setItemToInspect(null);
   };
 
+  // Action-related handlers
+  const handleCellClick = (taskId: string, dayNumber: number) => {
+    // Check if there's already an action for this day
+    const existingAction = actions.find(action => 
+      action.taskId === taskId && action.dayNumber === dayNumber
+    );
+    
+    if (existingAction) {
+      // Show existing action
+      setActionToView(existingAction);
+      setIsActionEditMode(false);
+      setIsActionViewModalOpen(true);
+    } else {
+      // Prompt to create new action
+      setSelectedCellInfo({ taskId, dayNumber });
+      setIsActionConfirmModalOpen(true);
+    }
+  };
+
+  const handleCloseActionConfirmModal = () => {
+    setIsActionConfirmModalOpen(false);
+    setSelectedCellInfo(null);
+  };
+
+  const handleConfirmCreateAction = () => {
+    setIsActionConfirmModalOpen(false);
+    setIsActionCreateModalOpen(true);
+  };
+
+  const handleCloseActionCreateModal = () => {
+    setIsActionCreateModalOpen(false);
+    setSelectedCellInfo(null);
+  };
+
+  const handleCloseActionViewModal = () => {
+    setIsActionViewModalOpen(false);
+    setActionToView(null);
+    setIsActionEditMode(false);
+  };
+
+  const handleActionEdit = () => {
+    setIsActionEditMode(true);
+  };
+
+  const handleActionSave = async (details: string) => {
+    if (!actionToView) return;
+    
+    try {
+      const { updateAction } = await import('../api/actions');
+      await updateAction(actionToView.id, { details });
+      // Trigger refetch of actions
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+    } catch (error) {
+      console.error('Failed to update action:', error);
+      throw error;
+    }
+  };
+
+  const handleActionDelete = async () => {
+    if (!actionToView) return;
+    
+    try {
+      const { deleteAction } = await import('../api/actions');
+      await deleteAction(actionToView.id);
+      // Trigger refetch of actions
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+    } catch (error) {
+      console.error('Failed to delete action:', error);
+      throw error;
+    }
+  };
+
+  const handleCreateAction = async (details: string) => {
+    if (!selectedCellInfo) return;
+    
+    try {
+      const { createAction } = await import('../api/actions');
+      await createAction({
+        taskId: selectedCellInfo.taskId,
+        dayNumber: selectedCellInfo.dayNumber,
+        details
+      });
+      // Trigger refetch of actions
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+    } catch (error) {
+      console.error('Failed to create action:', error);
+      throw error;
+    }
+  };
+
   const projectTitle = project?.name ?? (projectLoading ? 'Loading…' : 'Project');
   const projectDescription =
     projectError && projectErrorData instanceof Error ? projectErrorData.message : null;
@@ -817,10 +928,17 @@ export default function ProjectDetailPage() {
                             dayNumber <= dayRange.end;
                           const isEndDay = isActive && dayRange.end === dayNumber;
                           const shouldShowNote = !isTag && isActive && hasNote;
+                          
+                          // Check if there's an action for this task and day (only for tasks, not tags)
+                          const hasAction = !isTag && actions.some(action => 
+                            action.taskId === item.id && action.dayNumber === dayNumber
+                          );
+                          
                           const cellClassName = [
                             'project-grid__cell',
                             isActive ? 'project-grid__cell--active' : '',
                             shouldShowNote ? 'project-grid__cell--with-note' : '',
+                            hasAction ? 'project-grid__cell--with-action' : '',
                           ]
                             .filter(Boolean)
                             .join(' ');
@@ -829,6 +947,7 @@ export default function ProjectDetailPage() {
                             onMouseEnter: (e: React.MouseEvent) => handleTimelineHover(entry, e),
                             onMouseLeave: handleTimelineLeave,
                             onMouseMove: (e: React.MouseEvent) => setTooltipPosition({ x: e.clientX, y: e.clientY }),
+                            onClick: !isTag ? () => handleCellClick(item.id, dayNumber) : undefined,
                             style: { 
                               cursor: 'pointer',
                               backgroundColor: item.color || (isTag ? '#10b981' : '#3b82f6'),
@@ -837,6 +956,20 @@ export default function ProjectDetailPage() {
                           
                           return (
                             <td key={dayNumber} className={cellClassName} {...cellProps}>
+                              {hasAction && (
+                                <ActionIcon 
+                                  aria-hidden="true"
+                                  style={{ 
+                                    position: 'absolute',
+                                    top: '2px',
+                                    left: '2px',
+                                    width: '12px',
+                                    height: '12px',
+                                    color: '#1f2937',
+                                    pointerEvents: 'none'
+                                  }}
+                                />
+                              )}
                             </td>
                           );
                         })}
@@ -923,6 +1056,26 @@ export default function ProjectDetailPage() {
         tasks={tasks}
         taskNotes={taskNotes}
         onClose={() => setIsTaskListModalOpen(false)}
+      />
+      <ActionConfirmModal
+        isOpen={isActionConfirmModalOpen}
+        onClose={handleCloseActionConfirmModal}
+        onConfirm={handleConfirmCreateAction}
+      />
+      <ActionCreateModal
+        isOpen={isActionCreateModalOpen}
+        selectedCellInfo={selectedCellInfo}
+        onClose={handleCloseActionCreateModal}
+        onCreate={handleCreateAction}
+      />
+      <ActionViewModal
+        isOpen={isActionViewModalOpen}
+        action={actionToView}
+        isEditMode={isActionEditMode}
+        onClose={handleCloseActionViewModal}
+        onEdit={handleActionEdit}
+        onSave={handleActionSave}
+        onDelete={handleActionDelete}
       />
     </div>
   );
@@ -1184,6 +1337,300 @@ function TaskListModal({ isOpen, tasks, taskNotes, onClose }: TaskListModalProps
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Action Modals
+interface ActionConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+function ActionConfirmModal({ isOpen, onClose, onConfirm }: ActionConfirmModalProps) {
+  if (!isOpen) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="action-confirm-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="action-confirm-modal-title">Add Action</h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Close confirmation"
+          >
+            ×
+          </button>
+        </div>
+        
+        <div>
+          <p>Would you like to add an action for this day?</p>
+        </div>
+        
+        <div className="modal-actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="button-secondary" onClick={onConfirm}>
+            Yes, Add Action
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ActionCreateModalProps {
+  isOpen: boolean;
+  selectedCellInfo: {taskId: string; dayNumber: number} | null;
+  onClose: () => void;
+  onCreate: (details: string) => Promise<void>;
+}
+
+function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: ActionCreateModalProps) {
+  const [details, setDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!details.trim() || !selectedCellInfo) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onCreate(details.trim());
+      setDetails('');
+      onClose();
+    } catch (error) {
+      console.error('Failed to create action:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    setDetails('');
+    onClose();
+  };
+
+  if (!isOpen || !selectedCellInfo) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    handleClose();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="action-create-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="action-create-modal-title">Create Action for Day {selectedCellInfo.dayNumber}</h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={handleClose}
+            aria-label="Close create action"
+            disabled={isSubmitting}
+          >
+            ×
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="action-details">Action Details</label>
+            <textarea
+              id="action-details"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="Enter the action details..."
+              rows={4}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          
+          <div className="modal-actions">
+            <button type="button" onClick={handleClose} disabled={isSubmitting}>
+              Cancel
+            </button>
+            <button type="submit" className="button-secondary" disabled={isSubmitting || !details.trim()}>
+              {isSubmitting ? 'Creating...' : 'Save Action'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface ActionViewModalProps {
+  isOpen: boolean;
+  action: ActionRes | null;
+  isEditMode: boolean;
+  onClose: () => void;
+  onEdit: () => void;
+  onSave: (details: string) => Promise<void>;
+  onDelete: () => Promise<void>;
+}
+
+function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, onDelete }: ActionViewModalProps) {
+  const [editDetails, setEditDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update edit details when action changes
+  useEffect(() => {
+    if (action) {
+      setEditDetails(action.details);
+    }
+  }, [action]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editDetails.trim() || !action) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onSave(editDetails.trim());
+      onClose();
+    } catch (error) {
+      console.error('Failed to update action:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!action) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onDelete();
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete action:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    onClose();
+  };
+
+  if (!isOpen || !action) {
+    return null;
+  }
+
+  const handleBackdropClick = () => {
+    handleClose();
+  };
+
+  return (
+    <div className="modal-backdrop" role="presentation" onClick={handleBackdropClick}>
+      <div
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="action-view-modal-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="modal-header">
+          <h3 id="action-view-modal-title">Action for Day {action.dayNumber}</h3>
+          <button
+            type="button"
+            className="modal-close"
+            onClick={handleClose}
+            aria-label="Close action view"
+            disabled={isSubmitting}
+          >
+            ×
+          </button>
+        </div>
+        
+        {isEditMode ? (
+          <form onSubmit={handleSave}>
+            <div className="field">
+              <label htmlFor="edit-action-details">Action Details</label>
+              <textarea
+                id="edit-action-details"
+                value={editDetails}
+                onChange={(e) => setEditDetails(e.target.value)}
+                rows={4}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            
+            <div className="modal-actions">
+              <button type="button" onClick={handleClose} disabled={isSubmitting}>
+                Cancel
+              </button>
+              <button type="submit" className="button-secondary" disabled={isSubmitting || !editDetails.trim()}>
+                {isSubmitting ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="action-view-content">
+              <div className="field">
+                <label>Action Details</label>
+                <p style={{ 
+                  background: '#f8fafc', 
+                  padding: '0.75rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  whiteSpace: 'pre-wrap',
+                  margin: '0'
+                }}>
+                  {action.details}
+                </p>
+              </div>
+            </div>
+            
+            <div className="modal-actions">
+              <button type="button" onClick={handleClose}>
+                Close
+              </button>
+              <button type="button" onClick={onEdit} disabled={isSubmitting}>
+                Edit
+              </button>
+              <button 
+                type="button" 
+                className="button-danger" 
+                onClick={handleDelete}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1547,6 +1994,14 @@ function EyeIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
       <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+    </svg>
+  );
+}
+
+function ActionIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }

@@ -118,3 +118,22 @@ export interface TaskWithNoteInput {
   task: TaskCreateInput;
   noteAction: NoteAction;
 }
+
+export interface ActionRes {
+  id: string;
+  taskId: string;
+  dayNumber: number;
+  details: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActionCreateInput {
+  taskId: string;
+  dayNumber: number;
+  details: string;
+}
+
+export interface ActionUpdateInput {
+  details: string;
+}
