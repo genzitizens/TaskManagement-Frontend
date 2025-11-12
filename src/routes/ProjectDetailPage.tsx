@@ -129,7 +129,14 @@ export default function ProjectDetailPage() {
 
       Object.entries(prev).forEach(([taskId, entry]) => {
         if (validTaskIds.has(taskId)) {
-          next[taskId] = entry;
+          // Check if task was updated and invalidate cache if needed
+          const currentTask = tasks.find(t => t.id === taskId);
+          if (currentTask && entry.taskUpdatedAt !== currentTask.updatedAt) {
+            // Don't include this entry - it will be refetched
+            changed = true;
+          } else {
+            next[taskId] = entry;
+          }
         } else {
           changed = true;
         }
@@ -538,6 +545,14 @@ export default function ProjectDetailPage() {
       return;
     }
     await updateTask(selectedTask.id, input.task, input.noteAction);
+    
+    // Clear the cache for this task so it gets fresh data
+    setTaskNotes((prev) => {
+      const next = { ...prev };
+      delete next[selectedTask.id];
+      return next;
+    });
+    
     handleCloseModal();
   };
 
