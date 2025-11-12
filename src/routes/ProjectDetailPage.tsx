@@ -1384,11 +1384,11 @@ function ActionConfirmModal({ isOpen, onClose, onConfirm }: ActionConfirmModalPr
         </div>
         
         <div className="modal-actions">
-          <button type="button" onClick={onClose}>
-            Cancel
+          <button type="button" className="button-success" onClick={onConfirm}>
+            Add Action
           </button>
-          <button type="button" className="button-secondary" onClick={onConfirm}>
-            Yes, Add Action
+          <button type="button" className="button-danger" onClick={onClose}>
+            Cancel
           </button>
         </div>
       </div>

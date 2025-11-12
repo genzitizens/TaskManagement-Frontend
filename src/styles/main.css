@@ -537,6 +537,10 @@ button:disabled {
   background: #1e293b;
 }
 
+.button-success {
+  background: #16a34a;
+}
+
 .button-danger {
   background: #dc2626;
 }
