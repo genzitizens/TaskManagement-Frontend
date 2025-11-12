@@ -829,7 +829,14 @@ export default function ProjectDetailPage() {
       ) : null}
       <section className="project-detail__events">
         <header className="project-detail__events-header">
-          {/* <h3>Project timeline</h3> */}
+          <h3>Project timeline</h3>
+          <p style={{ 
+            margin: '0 0 8px 0',
+            color: '#6b7280',
+            fontSize: '14px',
+          }}>
+            Click on any colored cell to create an action for that day
+          </p>
           {projectStartLabel ? (
             <p className="project-detail__events-meta">
               Project start date:{' '}
