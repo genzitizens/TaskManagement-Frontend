@@ -101,8 +101,8 @@ export default function MenuPage() {
 
   const handleLogout = () => {
     // Clear SSO session storage
-    sessionStorage.removeItem('tim-auth-session');
-    localStorage.removeItem('tim-auth-session');
+    sessionStorage.removeItem('tms-auth-session');
+    localStorage.removeItem('tms-auth-session');
     
     // Clear any other authentication-related storage
     sessionStorage.clear();
