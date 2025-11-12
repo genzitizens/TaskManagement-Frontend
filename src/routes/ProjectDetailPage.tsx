@@ -672,7 +672,7 @@ export default function ProjectDetailPage() {
       ) : null}
       <section className="project-detail__events">
         <header className="project-detail__events-header">
-          <h3>Project timeline</h3>
+          {/* <h3>Project timeline</h3> */}
           {projectStartLabel ? (
             <p className="project-detail__events-meta">
               Project start date:{' '}
