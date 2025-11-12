@@ -720,20 +720,27 @@ export default function ProjectDetailPage() {
       
       if (error instanceof Error) {
         // Check for common error types
-        if (error.message.includes('fetch')) {
-          errorMessage = '🌐 Network error: Could not connect to server';
+        if (error.message.includes('fetch') || error.name === 'TypeError') {
+          errorMessage = `🌐 Network Error: Check console for URL details. Backend may not be running.`;
         } else if (error.message.includes('404')) {
-          errorMessage = '🔍 API endpoint not found (404)';
+          errorMessage = '🔍 API endpoint not found (404) - /actions endpoint missing';
         } else if (error.message.includes('500')) {
           errorMessage = '💥 Server error (500): Check backend logs';
         } else if (error.message.includes('400')) {
-          errorMessage = '❌ Bad request (400): Invalid data format';
+          errorMessage = '❌ Bad request (400): Check data format in console';
         } else {
           errorMessage = `❌ Error: ${error.message}`;
         }
       }
       
+      // Also show the error in a longer notification for debugging
       showNotification(errorMessage, 'error');
+      
+      // Log additional debugging info
+      console.error('🔧 DEBUGGING INFO:');
+      console.error('Selected cell info:', selectedCellInfo);
+      console.error('Action data sent:', actionData);
+      
       throw error;
     }
   };

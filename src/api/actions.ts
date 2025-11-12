@@ -42,6 +42,16 @@ export async function createAction(input: ActionCreateInput): Promise<ActionRes>
     return result;
   } catch (error) {
     console.error('createAction API: Request failed:', error);
+    
+    // Add more specific error details for debugging
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      if (error.message.includes('fetch')) {
+        console.error('This is a network/fetch error - likely backend is not running or wrong URL');
+      }
+    }
+    
     throw error;
   }
 }
