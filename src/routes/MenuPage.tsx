@@ -99,6 +99,18 @@ export default function MenuPage() {
 
   const isSubmitting = activeProject ? updating : creating;
 
+  const handleLogout = () => {
+    // Clear SSO session storage
+    sessionStorage.removeItem('tim-auth-session');
+    localStorage.removeItem('tim-auth-session');
+    
+    // Clear any other authentication-related storage
+    sessionStorage.clear();
+    
+    // Reload the page to trigger SSO login
+    window.location.reload();
+  };
+
   return (
     <div className="menu-page">
       {/* Enhanced Header with gradient and better button */}
@@ -139,36 +151,67 @@ export default function MenuPage() {
             }
           </p>
         </div>
-        <button 
-          type="button" 
-          onClick={openCreateModal}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'white',
-            color: '#667eea',
-            border: 'none',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            fontSize: '15px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-          }}
-        >
-          <PlusIcon style={{ width: '20px', height: '20px' }} aria-hidden="true" />
-          New Project
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            type="button" 
+            onClick={openCreateModal}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'white',
+              color: '#667eea',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            }}
+          >
+            <PlusIcon style={{ width: '20px', height: '20px' }} aria-hidden="true" />
+            New Project
+          </button>
+          <button 
+            type="button" 
+            onClick={handleLogout}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              color: 'white',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              padding: '12px 20px',
+              borderRadius: '8px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <LogoutIcon style={{ width: '18px', height: '18px' }} aria-hidden="true" />
+            Logout
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -479,6 +522,14 @@ function TrashIcon(props: SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
       <path d="M5 7h14l-1 14H6L5 7zm4 2v10h2V9H9zm4 0v10h2V9h-2z" />
       <path d="M9 4h6l1 1h5v2H3V5h5l1-1z" />
+    </svg>
+  );
+}
+
+function LogoutIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
+      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
     </svg>
   );
 }
