@@ -30,10 +30,20 @@ export async function getAction(id: string): Promise<ActionRes> {
 }
 
 export async function createAction(input: ActionCreateInput): Promise<ActionRes> {
-  return apiRequest<ActionRes>('/actions', {
-    method: 'POST',
-    body: JSON.stringify(input)
-  });
+  console.log('createAction API: Sending request with data:', input);
+  console.log('createAction API: Request body:', JSON.stringify(input));
+  
+  try {
+    const result = await apiRequest<ActionRes>('/actions', {
+      method: 'POST',
+      body: JSON.stringify(input)
+    });
+    console.log('createAction API: Success response:', result);
+    return result;
+  } catch (error) {
+    console.error('createAction API: Request failed:', error);
+    throw error;
+  }
 }
 
 export async function updateAction(id: string, input: ActionUpdateInput): Promise<ActionRes> {

@@ -317,6 +317,9 @@ export default function ProjectDetailPage() {
   const [selectedCellInfo, setSelectedCellInfo] = useState<{taskId: string; dayNumber: number} | null>(null);
   const [actionToView, setActionToView] = useState<ActionRes | null>(null);
   const [isActionEditMode, setIsActionEditMode] = useState(false);
+  
+  // Notification state for testing
+  const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null);
   const [isTaskListModalOpen, setIsTaskListModalOpen] = useState(false);
 
   const projectStart = useMemo(() => {
@@ -609,6 +612,12 @@ export default function ProjectDetailPage() {
     setItemToInspect(null);
   };
 
+  // Notification helper
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000); // Auto-hide after 5 seconds
+  };
+
   // Action-related handlers
   const handleCellClick = (taskId: string, dayNumber: number) => {
     // Check if there's already an action for this day
@@ -682,23 +691,49 @@ export default function ProjectDetailPage() {
   };
 
   const handleCreateAction = async (details: string) => {
-    if (!selectedCellInfo) return;
+    if (!selectedCellInfo) {
+      const errorMsg = 'No cell selected for action creation';
+      showNotification(errorMsg, 'error');
+      throw new Error(errorMsg);
+    }
+    
+    const actionData = {
+      taskId: selectedCellInfo.taskId,
+      dayNumber: selectedCellInfo.dayNumber,
+      details
+    };
+    
+    showNotification(`Creating action for Day ${selectedCellInfo.dayNumber}...`, 'success');
     
     try {
-      console.log('Creating action for:', selectedCellInfo, 'with details:', details);
       const { createAction } = await import('../api/actions');
-      const newAction = await createAction({
-        taskId: selectedCellInfo.taskId,
-        dayNumber: selectedCellInfo.dayNumber,
-        details
-      });
-      console.log('Action created successfully:', newAction);
+      
+      const newAction = await createAction(actionData);
       
       // Trigger refetch of actions
       queryClient.invalidateQueries({ queryKey: ['actions'] });
-      console.log('Cache invalidated, should refetch actions');
+      
+      showNotification(`✅ Action created successfully for Day ${selectedCellInfo.dayNumber}!`, 'success');
+      
     } catch (error) {
-      console.error('Failed to create action:', error);
+      let errorMessage = 'Failed to create action';
+      
+      if (error instanceof Error) {
+        // Check for common error types
+        if (error.message.includes('fetch')) {
+          errorMessage = '🌐 Network error: Could not connect to server';
+        } else if (error.message.includes('404')) {
+          errorMessage = '🔍 API endpoint not found (404)';
+        } else if (error.message.includes('500')) {
+          errorMessage = '💥 Server error (500): Check backend logs';
+        } else if (error.message.includes('400')) {
+          errorMessage = '❌ Bad request (400): Invalid data format';
+        } else {
+          errorMessage = `❌ Error: ${error.message}`;
+        }
+      }
+      
+      showNotification(errorMessage, 'error');
       throw error;
     }
   };
@@ -1086,6 +1121,32 @@ export default function ProjectDetailPage() {
         onSave={handleActionSave}
         onDelete={handleActionDelete}
       />
+      
+      {/* Testing Notification */}
+      {notification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: '600',
+            maxWidth: '400px',
+            zIndex: 9999,
+            backgroundColor: notification.type === 'success' ? '#16a34a' : '#dc2626',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            cursor: 'pointer',
+          }}
+          onClick={() => setNotification(null)}
+        >
+          {notification.message}
+          <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.9 }}>
+            Click to dismiss
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1415,18 +1476,28 @@ interface ActionCreateModalProps {
 function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: ActionCreateModalProps) {
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!details.trim() || !selectedCellInfo) return;
     
+    console.log('ActionCreateModal: Starting submission with data:', {
+      taskId: selectedCellInfo.taskId,
+      dayNumber: selectedCellInfo.dayNumber,
+      details: details.trim()
+    });
+    
     setIsSubmitting(true);
+    setError(null);
     try {
       await onCreate(details.trim());
+      console.log('ActionCreateModal: Action created successfully, closing modal');
       setDetails('');
       onClose();
     } catch (error) {
-      console.error('Failed to create action:', error);
+      console.error('ActionCreateModal: Failed to create action:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create action');
     } finally {
       setIsSubmitting(false);
     }
@@ -1481,6 +1552,18 @@ function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: Acti
               disabled={isSubmitting}
             />
           </div>
+          
+          {error && (
+            <div className="error-message" style={{ marginTop: '1rem' }}>
+              {error}
+            </div>
+          )}
+          
+          {selectedCellInfo && (
+            <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem' }}>
+              Creating action for Task ID: {selectedCellInfo.taskId}, Day: {selectedCellInfo.dayNumber}
+            </div>
+          )}
           
           <div className="modal-actions">
             <button type="submit" className="button-success" disabled={isSubmitting || !details.trim()}>
