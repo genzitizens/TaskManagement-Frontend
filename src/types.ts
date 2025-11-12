@@ -122,7 +122,7 @@ export interface TaskWithNoteInput {
 export interface ActionRes {
   id: string;
   taskId: string;
-  dayNumber: number;
+  day: number;
   details: string;
   createdAt: string;
   updatedAt: string;
@@ -130,8 +130,8 @@ export interface ActionRes {
 
 export interface ActionCreateInput {
   taskId: string;
-  dayNumber: number;
   details: string;
+  day: number;
 }
 
 export interface ActionUpdateInput {

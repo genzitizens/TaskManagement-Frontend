@@ -622,7 +622,7 @@ export default function ProjectDetailPage() {
   const handleCellClick = (taskId: string, dayNumber: number) => {
     // Check if there's already an action for this day
     const existingAction = actions.find(action => 
-      action.taskId === taskId && action.dayNumber === dayNumber
+      action.taskId === taskId && action.day === dayNumber
     );
     
     if (existingAction) {
@@ -699,8 +699,8 @@ export default function ProjectDetailPage() {
     
     const actionData = {
       taskId: selectedCellInfo.taskId,
-      dayNumber: selectedCellInfo.dayNumber,
-      details
+      details,
+      day: selectedCellInfo.dayNumber
     };
     
     showNotification(`Creating action for Day ${selectedCellInfo.dayNumber}...`, 'success');
@@ -977,7 +977,7 @@ export default function ProjectDetailPage() {
                           
                           // Check if there's an action for this task and day (only for tasks, not tags)
                           const hasAction = !isTag && actions.some(action => 
-                            action.taskId === item.id && action.dayNumber === dayNumber
+                            action.taskId === item.id && action.day === dayNumber
                           );
                           
                           // Debug logging for first task and day 1 to verify actions are loaded
@@ -1659,7 +1659,7 @@ function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, 
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 id="action-view-modal-title">Action for Day {action.dayNumber}</h3>
+          <h3 id="action-view-modal-title">Action for Day {action.day}</h3>
           <button
             type="button"
             className="modal-close"
