@@ -446,10 +446,12 @@ export default function ProjectDetailPage() {
   const handleSubmitTag = async (input: TagCreateInput) => {
     if (tagModalMode === 'edit' && tagForModal) {
       await updateTagApi(tagForModal.id, input);
+      handleCloseTagModal();
       return;
     }
 
     await createTag(input);
+    handleCloseTagModal();
   };
 
   const handleEditTagRequest = (tagId: string) => {
@@ -536,6 +538,7 @@ export default function ProjectDetailPage() {
       return;
     }
     await updateTask(selectedTask.id, input.task, input.noteAction);
+    handleCloseModal();
   };
 
   const handleDeleteTaskConfirm = async () => {
