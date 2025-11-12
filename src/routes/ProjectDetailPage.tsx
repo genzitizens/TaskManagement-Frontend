@@ -685,14 +685,18 @@ export default function ProjectDetailPage() {
     if (!selectedCellInfo) return;
     
     try {
+      console.log('Creating action for:', selectedCellInfo, 'with details:', details);
       const { createAction } = await import('../api/actions');
-      await createAction({
+      const newAction = await createAction({
         taskId: selectedCellInfo.taskId,
         dayNumber: selectedCellInfo.dayNumber,
         details
       });
+      console.log('Action created successfully:', newAction);
+      
       // Trigger refetch of actions
       queryClient.invalidateQueries({ queryKey: ['actions'] });
+      console.log('Cache invalidated, should refetch actions');
     } catch (error) {
       console.error('Failed to create action:', error);
       throw error;
@@ -933,6 +937,11 @@ export default function ProjectDetailPage() {
                           const hasAction = !isTag && actions.some(action => 
                             action.taskId === item.id && action.dayNumber === dayNumber
                           );
+                          
+                          // Debug logging for first task and day 1 to verify actions are loaded
+                          if (!isTag && item.id === tasks[0]?.id && dayNumber === 1) {
+                            console.log('Debug - Actions for first task:', actions.filter(a => a.taskId === item.id));
+                          }
                           
                           const cellClassName = [
                             'project-grid__cell',
@@ -2001,7 +2010,8 @@ function EyeIcon(props: SVGProps<SVGSVGElement>) {
 function ActionIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
-      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path d="M17.5 5.5L16 4l-4 4 1.5 1.5 4-4zm2 2L18 6l-4 4 1.5 1.5 4-4zM9 13l-4 4 1.5 1.5L10.5 14.5 9 13zm-2-2l4-4L9.5 5.5 5.5 9.5 7 11z" />
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
     </svg>
   );
 }
