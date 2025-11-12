@@ -835,7 +835,7 @@ export default function ProjectDetailPage() {
             color: '#6b7280',
             fontSize: '14px',
           }}>
-            Click on any colored cell to create an action for that day
+            Click on any task colored cell to create an action for that day
           </p>
           {projectStartLabel ? (
             <p className="project-detail__events-meta">
