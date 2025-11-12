@@ -1474,11 +1474,11 @@ function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: Acti
           </div>
           
           <div className="modal-actions">
-            <button type="button" onClick={handleClose} disabled={isSubmitting}>
-              Cancel
+            <button type="submit" className="button-success" disabled={isSubmitting || !details.trim()}>
+              {isSubmitting ? 'Creating...' : 'Create Action'}
             </button>
-            <button type="submit" className="button-secondary" disabled={isSubmitting || !details.trim()}>
-              {isSubmitting ? 'Creating...' : 'Save Action'}
+            <button type="button" className="button-danger" onClick={handleClose} disabled={isSubmitting}>
+              Cancel
             </button>
           </div>
         </form>
