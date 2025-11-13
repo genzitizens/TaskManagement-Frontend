@@ -373,9 +373,9 @@ export default function ProjectModal({
                         isImport: event.target.checked,
                         sourceProjectId: event.target.checked ? prev.sourceProjectId : '',
                         importTasks: event.target.checked ? prev.importTasks : true,
-                        importNotes: event.target.checked ? prev.importNotes : true,
+                        importNotes: event.target.checked ? (prev.importTasks ? prev.importNotes : true) : true,
                         importTags: event.target.checked ? prev.importTags : true,
-                        importActions: event.target.checked ? prev.importActions : true,
+                        importActions: event.target.checked ? (prev.importTasks ? prev.importActions : true) : true,
                       }))
                     }
                     disabled={submitting}
@@ -430,13 +430,17 @@ export default function ProjectModal({
                           setForm((prev) => ({
                             ...prev,
                             importTasks: event.target.checked,
+                            // Auto-disable notes and actions if tasks are disabled
+                            importNotes: event.target.checked ? prev.importNotes : false,
+                            importActions: event.target.checked ? prev.importActions : false,
                           }))
                         }
                         disabled={submitting}
                       />
                       <label htmlFor="import-tasks">Import Tasks</label>
                     </div>
-                    <div className="checkbox-field">
+                    {/* Notes option - nested under tasks and auto-disabled if tasks disabled */}
+                    <div className="checkbox-field" style={{ marginLeft: '1.5rem', opacity: form.importTasks ? 1 : 0.5 }}>
                       <input
                         id="import-notes"
                         type="checkbox"
@@ -447,9 +451,25 @@ export default function ProjectModal({
                             importNotes: event.target.checked,
                           }))
                         }
-                        disabled={submitting}
+                        disabled={submitting || !form.importTasks}
                       />
-                      <label htmlFor="import-notes">Import Notes</label>
+                      <label htmlFor="import-notes">Import Notes (task-related)</label>
+                    </div>
+                    {/* Actions option - nested under tasks and auto-disabled if tasks disabled */}
+                    <div className="checkbox-field" style={{ marginLeft: '1.5rem', opacity: form.importTasks ? 1 : 0.5 }}>
+                      <input
+                        id="import-actions"
+                        type="checkbox"
+                        checked={form.importActions}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            importActions: event.target.checked,
+                          }))
+                        }
+                        disabled={submitting || !form.importTasks}
+                      />
+                      <label htmlFor="import-actions">Import Actions (task-related)</label>
                     </div>
                     <div className="checkbox-field">
                       <input
@@ -465,21 +485,6 @@ export default function ProjectModal({
                         disabled={submitting}
                       />
                       <label htmlFor="import-tags">Import Tags</label>
-                    </div>
-                    <div className="checkbox-field">
-                      <input
-                        id="import-actions"
-                        type="checkbox"
-                        checked={form.importActions}
-                        onChange={(event) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            importActions: event.target.checked,
-                          }))
-                        }
-                        disabled={submitting}
-                      />
-                      <label htmlFor="import-actions">Import Actions</label>
                     </div>
                   </div>
                 </div>
