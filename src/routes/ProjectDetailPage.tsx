@@ -45,6 +45,10 @@ interface TagTimelineEntry {
 
 type TimelineEntry = TaskTimelineEntry | TagTimelineEntry;
 
+type HoveredTimelineEntry = TimelineEntry & {
+  hoveredDay: number;
+}
+
 function getVisibleColumnCount(width: number) {
   if (width >= DESKTOP_BREAKPOINT) {
     return DESKTOP_COLUMN_COUNT;
@@ -305,7 +309,7 @@ export default function ProjectDetailPage() {
   const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
   const [tagDeleteError, setTagDeleteError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<TimelineEntry | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<HoveredTimelineEntry | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isInspectModalOpen, setIsInspectModalOpen] = useState(false);
   const [itemToInspect, setItemToInspect] = useState<TimelineEntry | null>(null);
@@ -593,8 +597,8 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const handleTimelineHover = (entry: TimelineEntry, event: React.MouseEvent) => {
-    setHoveredItem(entry);
+  const handleTimelineHover = (entry: TimelineEntry, day: number, event: React.MouseEvent) => {
+    setHoveredItem({ ...entry, hoveredDay: day });
     setTooltipPosition({ x: event.clientX, y: event.clientY });
   };
 
@@ -1037,7 +1041,7 @@ export default function ProjectDetailPage() {
                             .join(' ');
                           
                           const cellProps = isActive ? {
-                            onMouseEnter: (e: React.MouseEvent) => handleTimelineHover(entry, e),
+                            onMouseEnter: (e: React.MouseEvent) => handleTimelineHover(entry, dayNumber, e),
                             onMouseLeave: handleTimelineLeave,
                             onMouseMove: (e: React.MouseEvent) => setTooltipPosition({ x: e.clientX, y: e.clientY }),
                             onClick: !isTag ? () => handleCellClick(item.id, dayNumber) : undefined,
@@ -1208,33 +1212,33 @@ export default function ProjectDetailPage() {
 }
 
 interface TimelineTooltipProps {
-  entry: TimelineEntry;
+  entry: HoveredTimelineEntry;
   position: { x: number; y: number };
   taskNotes: Record<string, TaskNoteCacheEntry>;
   actions: ActionRes[];
 }
 
 function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineTooltipProps) {
-  const { item } = entry;
+  const { item, hoveredDay } = entry;
   const isTask = entry.entryType === 'task';
   const isTag = entry.entryType === 'tag';
   
-  // For tasks: get note and related actions
+  // For tasks: get note and actions for the specific day
   const resolvedNote = isTask ? entry.item.note ?? taskNotes[item.id]?.note ?? null : null;
-  const taskActions = isTask ? actions.filter(action => action.taskId === item.id) : [];
+  const dayActions = isTask ? actions.filter(action => action.taskId === item.id && action.day === hoveredDay) : [];
   
-  // Determine if tooltip should show
+  // Determine what content to show based on the specific day
   const hasNote = resolvedNote?.body;
-  const hasActions = taskActions.length > 0;
+  const hasActionsOnDay = dayActions.length > 0;
   const hasTagDescription = isTag && (item as TagRes).description;
   
-  // Only show tooltip if there's content to display
-  if (isTask && !hasNote && !hasActions) {
+  // For tasks: show tooltip only if there's note OR actions on this specific day
+  if (isTask && !hasNote && !hasActionsOnDay) {
     return null;
   }
   
   // For tags, always show (but now with description if available)
-  const hasContent = isTag || hasNote || hasActions;
+  const hasContent = isTag || hasNote || hasActionsOnDay;
   if (!hasContent) {
     return null;
   }
@@ -1269,10 +1273,15 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        borderBottom: (hasNote || hasActions || hasTagDescription) ? '1px solid rgba(255, 255, 255, 0.25)' : 'none'
+        borderBottom: (hasNote || hasActionsOnDay || hasTagDescription) ? '1px solid rgba(255, 255, 255, 0.25)' : 'none'
       }}>
         <span style={{ fontSize: '16px' }}>{isTask ? '📋' : '🏷️'}</span>
         {item.title}
+        {isTask && (
+          <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 'normal' }}>
+            (Day {hoveredDay})
+          </span>
+        )}
       </div>
 
       {/* Tag Description Section */}
@@ -1289,7 +1298,7 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
         </div>
       )}
 
-      {/* Notes Section */}
+      {/* Notes Section - only show if task has note */}
       {hasNote && (
         <div style={{ 
           fontSize: '13px',
@@ -1297,7 +1306,7 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
           whiteSpace: 'pre-wrap',
           background: 'rgba(0, 0, 0, 0.2)',
           padding: '12px 16px',
-          borderBottom: hasActions ? '1px solid rgba(255, 255, 255, 0.15)' : 'none'
+          borderBottom: hasActionsOnDay ? '1px solid rgba(255, 255, 255, 0.15)' : 'none'
         }}>
           <div style={{ fontWeight: '500', marginBottom: '6px', fontSize: '12px', opacity: 0.9 }}>
             📝 Notes
@@ -1308,8 +1317,8 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
         </div>
       )}
 
-      {/* Actions Section */}
-      {hasActions && (
+      {/* Actions Section - only show actions for this specific day */}
+      {hasActionsOnDay && (
         <div style={{ 
           fontSize: '13px',
           lineHeight: '1.5',
@@ -1317,16 +1326,13 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
           padding: '12px 16px'
         }}>
           <div style={{ fontWeight: '500', marginBottom: '8px', fontSize: '12px', opacity: 0.9 }}>
-            ⚡ Actions ({taskActions.length})
+            ⚡ Actions for Day {hoveredDay} ({dayActions.length})
           </div>
-          {taskActions.slice(0, 3).map((action, index) => (
+          {dayActions.map((action, index) => (
             <div key={action.id} style={{ 
-              marginBottom: index < Math.min(taskActions.length, 3) - 1 ? '4px' : '0',
+              marginBottom: index < dayActions.length - 1 ? '6px' : '0',
               opacity: 0.95
             }}>
-              <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                Day {action.day}:
-              </div>
               <div>
                 {action.details.length > 80 
                   ? `${action.details.substring(0, 80)}...` 
@@ -1334,11 +1340,6 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
               </div>
             </div>
           ))}
-          {taskActions.length > 3 && (
-            <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px', fontStyle: 'italic' }}>
-              +{taskActions.length - 3} more actions...
-            </div>
-          )}
         </div>
       )}
     </div>
