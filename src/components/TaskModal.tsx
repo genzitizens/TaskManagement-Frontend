@@ -1,11 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import utc from 'dayjs/plugin/utc';
 import { z } from 'zod';
 import type { NoteAction, ProjectRes, TaskCreateInput, TaskRes, TaskWithNoteInput } from '../types';
 import { toBoolean } from '../utils/toBoolean';
 
 dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 const API_START_DATE_FORMAT = 'DD-MM-YYYY';
 
@@ -188,8 +190,9 @@ export default function TaskModal({
 
     const { startAt, endAt, ...rest } = result.data;
 
-    const startDate = dayjs(startAt).startOf('day');
-    const endDate = dayjs(endAt).startOf('day');
+    // Parse dates in UTC to avoid timezone conversion issues
+    const startDate = dayjs.utc(startAt).startOf('day');
+    const endDate = dayjs.utc(endAt).startOf('day');
     if (!startDate.isValid()) {
       setFormError('Provide a valid start date');
       return;
@@ -244,6 +247,18 @@ export default function TaskModal({
       start_day: startDay,
       end_day: endDay,
     };
+
+    console.log('🚀 Task creation payload:', {
+      inputDates: { startAt: form.startAt, endAt: form.endAt },
+      processedDates: { 
+        startAt: startDate.toISOString(), 
+        endAt: endDate.toISOString() 
+      },
+      localDates: {
+        startAt: startDate.format('YYYY-MM-DD'),
+        endAt: endDate.format('YYYY-MM-DD')
+      }
+    });
 
     const trimmedNote = form.note.trim();
 
