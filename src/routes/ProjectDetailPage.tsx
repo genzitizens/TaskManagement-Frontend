@@ -1168,6 +1168,7 @@ export default function ProjectDetailPage() {
       <ActionCreateModal
         isOpen={isActionCreateModalOpen}
         selectedCellInfo={selectedCellInfo}
+        tasks={tasks}
         onClose={handleCloseActionCreateModal}
         onCreate={handleCreateAction}
       />
@@ -1595,14 +1596,18 @@ function ActionConfirmModal({ isOpen, onClose, onConfirm }: ActionConfirmModalPr
 interface ActionCreateModalProps {
   isOpen: boolean;
   selectedCellInfo: {taskId: string; dayNumber: number} | null;
+  tasks: TaskRes[];
   onClose: () => void;
   onCreate: (details: string) => Promise<void>;
 }
 
-function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: ActionCreateModalProps) {
+function ActionCreateModal({ isOpen, selectedCellInfo, tasks, onClose, onCreate }: ActionCreateModalProps) {
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Find the task name based on taskId
+  const selectedTask = selectedCellInfo ? tasks.find(task => task.id === selectedCellInfo.taskId) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1685,9 +1690,9 @@ function ActionCreateModal({ isOpen, selectedCellInfo, onClose, onCreate }: Acti
             </div>
           )}
           
-          {selectedCellInfo && (
+          {selectedCellInfo && selectedTask && (
             <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem' }}>
-              Creating action for Task ID: {selectedCellInfo.taskId}, Day: {selectedCellInfo.dayNumber}
+              Creating action for Task: <strong>{selectedTask.title}</strong>, Day: {selectedCellInfo.dayNumber}
             </div>
           )}
           
