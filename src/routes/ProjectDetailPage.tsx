@@ -1326,20 +1326,13 @@ function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineToolti
           padding: '12px 16px'
         }}>
           <div style={{ fontWeight: '500', marginBottom: '8px', fontSize: '12px', opacity: 0.9 }}>
-            ⚡ Actions for Day {hoveredDay} ({dayActions.length})
+            ⚡ Action for Day {hoveredDay}
           </div>
-          {dayActions.map((action, index) => (
-            <div key={action.id} style={{ 
-              marginBottom: index < dayActions.length - 1 ? '6px' : '0',
-              opacity: 0.95
-            }}>
-              <div>
-                {action.details.length > 80 
-                  ? `${action.details.substring(0, 80)}...` 
-                  : action.details}
-              </div>
-            </div>
-          ))}
+          <div style={{ opacity: 0.95 }}>
+            {dayActions[0].details.length > 80 
+              ? `${dayActions[0].details.substring(0, 80)}...` 
+              : dayActions[0].details}
+          </div>
         </div>
       )}
     </div>
