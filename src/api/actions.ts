@@ -20,13 +20,13 @@ export async function listActions(params: ListActionsParams = {}): Promise<Page<
     searchParams.page = params.page;
   }
 
-  return apiRequest<Page<ActionRes>>('/actions', {
+  return apiRequest<Page<ActionRes>>('/api/actions', {
     searchParams: searchParams
   });
 }
 
 export async function getAction(id: string): Promise<ActionRes> {
-  return apiRequest<ActionRes>(`/actions/${id}`);
+  return apiRequest<ActionRes>(`/api/actions/${id}`);
 }
 
 export async function createAction(input: ActionCreateInput): Promise<ActionRes> {
@@ -34,7 +34,7 @@ export async function createAction(input: ActionCreateInput): Promise<ActionRes>
   console.log('createAction API: Request body:', JSON.stringify(input));
   
   try {
-    const result = await apiRequest<ActionRes>('/actions', {
+    const result = await apiRequest<ActionRes>('/api/actions', {
       method: 'POST',
       body: JSON.stringify(input)
     });
@@ -57,14 +57,14 @@ export async function createAction(input: ActionCreateInput): Promise<ActionRes>
 }
 
 export async function updateAction(id: string, input: ActionUpdateInput): Promise<ActionRes> {
-  return apiRequest<ActionRes>(`/actions/${id}`, {
+  return apiRequest<ActionRes>(`/api/actions/${id}`, {
     method: 'PUT',
     body: JSON.stringify(input)
   });
 }
 
 export async function deleteAction(id: string): Promise<void> {
-  return apiRequest<void>(`/actions/${id}`, {
+  return apiRequest<void>(`/api/actions/${id}`, {
     method: 'DELETE'
   });
 }
