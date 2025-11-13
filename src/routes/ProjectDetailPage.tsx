@@ -1170,6 +1170,7 @@ export default function ProjectDetailPage() {
         isOpen={isActionViewModalOpen}
         action={actionToView}
         isEditMode={isActionEditMode}
+        tasks={tasks}
         onClose={handleCloseActionViewModal}
         onEdit={handleActionEdit}
         onSave={handleActionSave}
@@ -1637,13 +1638,14 @@ interface ActionViewModalProps {
   isOpen: boolean;
   action: ActionRes | null;
   isEditMode: boolean;
+  tasks: TaskRes[];
   onClose: () => void;
   onEdit: () => void;
   onSave: (details: string) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
-function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, onDelete }: ActionViewModalProps) {
+function ActionViewModal({ isOpen, action, isEditMode, tasks, onClose, onEdit, onSave, onDelete }: ActionViewModalProps) {
   const [editDetails, setEditDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -1716,7 +1718,12 @@ function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, 
         onClick={(event) => event.stopPropagation()}
       >
         <div className="modal-header">
-          <h3 id="action-view-modal-title">Action for Day {action.day}</h3>
+          <h3 id="action-view-modal-title">
+            Action for {(() => {
+              const task = tasks.find((t: TaskRes) => t.id === action.taskId);
+              return task ? task.title : 'Task';
+            })()} Day {action.day}
+          </h3>
           <button
             type="button"
             className="modal-close"
@@ -2171,8 +2178,7 @@ function EyeIcon(props: SVGProps<SVGSVGElement>) {
 function ActionIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" focusable="false" {...props}>
-      <path d="M17.5 5.5L16 4l-4 4 1.5 1.5 4-4zm2 2L18 6l-4 4 1.5 1.5 4-4zM9 13l-4 4 1.5 1.5L10.5 14.5 9 13zm-2-2l4-4L9.5 5.5 5.5 9.5 7 11z" />
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
+      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
     </svg>
   );
 }
