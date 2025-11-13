@@ -189,7 +189,7 @@ export default function ProjectModal({
     try {
       if (mode === 'create' && form.isImport) {
         // Handle import
-        await importProject({
+        const importPayload = {
           sourceProjectId: form.sourceProjectId,
           newProjectName: result.data.name,
           description: result.data.description,
@@ -197,7 +197,9 @@ export default function ProjectModal({
           importNotes: form.importNotes,
           importTags: form.importTags,
           importActions: form.importActions,
-        });
+        };
+        console.log('🚀 Sending project import request with payload:', importPayload);
+        await importProject(importPayload);
         // Invalidate projects cache to refresh the list
         queryClient.invalidateQueries({ queryKey: ['projects'] });
       } else {
