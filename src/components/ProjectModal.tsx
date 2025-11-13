@@ -131,8 +131,14 @@ export default function ProjectModal({
   ]);
 
   // Date validation helper
-  const handleDateChange = (value: string) => {
+  const handleDateChange = (value: string, inputElement?: HTMLInputElement) => {
     setForm((prev) => ({ ...prev, startDate: value }));
+    
+    // Check if the input element shows invalid date (like 31/04/2026)
+    if (inputElement && inputElement.validity && !inputElement.validity.valid) {
+      setDateError('Please provide a valid start date');
+      return;
+    }
     
     if (value && !dayjs(value, 'YYYY-MM-DD', true).isValid()) {
       setDateError('Please provide a valid start date');
@@ -374,7 +380,7 @@ export default function ProjectModal({
                   name="startDate"
                   type="date"
                   value={form.startDate}
-                  onChange={(event) => handleDateChange(event.target.value)}
+                  onChange={(event) => handleDateChange(event.target.value, event.target)}
                   required
                   disabled={submitting || mode === 'edit'}
                   style={{

@@ -151,7 +151,12 @@ export default function TaskModal({
   }, [defaultProjectId, isOpen, mode, task]);
 
   // Date validation helpers
-  const validateDate = (dateStr: string, fieldName: 'startAt' | 'endAt') => {
+  const validateDate = (dateStr: string, fieldName: 'startAt' | 'endAt', inputElement?: HTMLInputElement) => {
+    // Check if the input element shows invalid date (like 31/04/2026)
+    if (inputElement && inputElement.validity && !inputElement.validity.valid) {
+      return `Please provide a valid ${fieldName === 'startAt' ? 'start' : 'end'} date`;
+    }
+    
     if (!dateStr) {
       return `${fieldName === 'startAt' ? 'Start' : 'End'} date is required`;
     }
@@ -176,11 +181,11 @@ export default function TaskModal({
   };
 
   // Real-time date validation
-  const handleDateChange = (field: 'startAt' | 'endAt', value: string) => {
+  const handleDateChange = (field: 'startAt' | 'endAt', value: string, inputElement?: HTMLInputElement) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     
     // Validate the specific field
-    const fieldError = validateDate(value, field);
+    const fieldError = validateDate(value, field, inputElement);
     
     // Validate date range if both dates are present
     const otherField = field === 'startAt' ? 'endAt' : 'startAt';
@@ -453,7 +458,7 @@ export default function TaskModal({
               name="startAt"
               type="date"
               value={form.startAt}
-              onChange={(event) => handleDateChange('startAt', event.target.value)}
+              onChange={(event) => handleDateChange('startAt', event.target.value, event.target)}
               required
               disabled={submitting}
               style={{
@@ -473,7 +478,7 @@ export default function TaskModal({
               name="endAt"
               type="date"
               value={form.endAt}
-              onChange={(event) => handleDateChange('endAt', event.target.value)}
+              onChange={(event) => handleDateChange('endAt', event.target.value, event.target)}
               required
               disabled={submitting}
               style={{
