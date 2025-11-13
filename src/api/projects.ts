@@ -38,6 +38,7 @@ export interface ImportProjectInput {
   importTasks?: boolean;
   importNotes?: boolean;
   importTags?: boolean;
+  importActions?: boolean;
 }
 
 export function importProject(payload: ImportProjectInput) {

@@ -4,6 +4,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
 import { createProject, importProject, listProjects } from '../api/projects';
+import { queryClient } from '../queryClient';
 import DeleteProjectModal from './DeleteProjectModal';
 
 type ProjectModalMode = 'create' | 'edit';
@@ -35,6 +36,7 @@ type FormState = {
   importTasks: boolean;
   importNotes: boolean;
   importTags: boolean;
+  importActions: boolean;
 };
 
 const createInitialState = (): FormState => ({
@@ -46,6 +48,7 @@ const createInitialState = (): FormState => ({
   importTasks: true,
   importNotes: true,
   importTags: true,
+  importActions: true,
 });
 
 const projectSchema = z.object({
@@ -106,6 +109,7 @@ export default function ProjectModal({
         importTasks: true,
         importNotes: true,
         importTags: true,
+        importActions: true,
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());
@@ -192,7 +196,10 @@ export default function ProjectModal({
           importTasks: form.importTasks,
           importNotes: form.importNotes,
           importTags: form.importTags,
+          importActions: form.importActions,
         });
+        // Invalidate projects cache to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['projects'] });
       } else {
         // Handle regular create/edit
         const payload: ProjectCreateInput = {
@@ -368,6 +375,7 @@ export default function ProjectModal({
                         importTasks: event.target.checked ? prev.importTasks : true,
                         importNotes: event.target.checked ? prev.importNotes : true,
                         importTags: event.target.checked ? prev.importTags : true,
+                        importActions: event.target.checked ? prev.importActions : true,
                       }))
                     }
                     disabled={submitting}
@@ -457,6 +465,21 @@ export default function ProjectModal({
                         disabled={submitting}
                       />
                       <label htmlFor="import-tags">Import Tags</label>
+                    </div>
+                    <div className="checkbox-field">
+                      <input
+                        id="import-actions"
+                        type="checkbox"
+                        checked={form.importActions}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            importActions: event.target.checked,
+                          }))
+                        }
+                        disabled={submitting}
+                      />
+                      <label htmlFor="import-actions">Import Actions</label>
                     </div>
                   </div>
                 </div>
