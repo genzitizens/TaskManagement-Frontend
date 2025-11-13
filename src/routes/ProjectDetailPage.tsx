@@ -1084,6 +1084,7 @@ export default function ProjectDetailPage() {
             entry={hoveredItem}
             position={tooltipPosition}
             taskNotes={taskNotes}
+            actions={actions}
           />
         )}
         {showEmptyState ? (
@@ -1210,12 +1211,33 @@ interface TimelineTooltipProps {
   entry: TimelineEntry;
   position: { x: number; y: number };
   taskNotes: Record<string, TaskNoteCacheEntry>;
+  actions: ActionRes[];
 }
 
-function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
+function TimelineTooltip({ entry, position, taskNotes, actions }: TimelineTooltipProps) {
   const { item } = entry;
   const isTask = entry.entryType === 'task';
+  const isTag = entry.entryType === 'tag';
+  
+  // For tasks: get note and related actions
   const resolvedNote = isTask ? entry.item.note ?? taskNotes[item.id]?.note ?? null : null;
+  const taskActions = isTask ? actions.filter(action => action.taskId === item.id) : [];
+  
+  // Determine if tooltip should show
+  const hasNote = resolvedNote?.body;
+  const hasActions = taskActions.length > 0;
+  const hasTagDescription = isTag && (item as TagRes).description;
+  
+  // Only show tooltip if there's content to display
+  if (isTask && !hasNote && !hasActions) {
+    return null;
+  }
+  
+  // For tags, always show (but now with description if available)
+  const hasContent = isTag || hasNote || hasActions;
+  if (!hasContent) {
+    return null;
+  }
 
   return (
     <div
@@ -1238,6 +1260,7 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
         overflow: 'hidden'
       }}
     >
+      {/* Title Section */}
       <div style={{ 
         fontWeight: '600', 
         padding: '12px 16px',
@@ -1246,22 +1269,76 @@ function TimelineTooltip({ entry, position, taskNotes }: TimelineTooltipProps) {
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        borderBottom: resolvedNote?.body ? '1px solid rgba(255, 255, 255, 0.25)' : 'none'
+        borderBottom: (hasNote || hasActions || hasTagDescription) ? '1px solid rgba(255, 255, 255, 0.25)' : 'none'
       }}>
         <span style={{ fontSize: '16px' }}>{isTask ? '📋' : '🏷️'}</span>
         {item.title}
       </div>
-      {resolvedNote?.body && (
+
+      {/* Tag Description Section */}
+      {isTag && hasTagDescription && (
+        <div style={{ 
+          fontSize: '13px',
+          lineHeight: '1.5',
+          whiteSpace: 'pre-wrap',
+          background: 'rgba(0, 0, 0, 0.15)',
+          padding: '12px 16px',
+          borderBottom: 'none'
+        }}>
+          {(item as TagRes).description}
+        </div>
+      )}
+
+      {/* Notes Section */}
+      {hasNote && (
         <div style={{ 
           fontSize: '13px',
           lineHeight: '1.5',
           whiteSpace: 'pre-wrap',
           background: 'rgba(0, 0, 0, 0.2)',
+          padding: '12px 16px',
+          borderBottom: hasActions ? '1px solid rgba(255, 255, 255, 0.15)' : 'none'
+        }}>
+          <div style={{ fontWeight: '500', marginBottom: '6px', fontSize: '12px', opacity: 0.9 }}>
+            📝 Notes
+          </div>
+          {resolvedNote!.body.length > 100 
+            ? `${resolvedNote!.body.substring(0, 100)}...` 
+            : resolvedNote!.body}
+        </div>
+      )}
+
+      {/* Actions Section */}
+      {hasActions && (
+        <div style={{ 
+          fontSize: '13px',
+          lineHeight: '1.5',
+          background: 'rgba(0, 0, 0, 0.3)',
           padding: '12px 16px'
         }}>
-          {resolvedNote.body.length > 100 
-            ? `${resolvedNote.body.substring(0, 100)}...` 
-            : resolvedNote.body}
+          <div style={{ fontWeight: '500', marginBottom: '8px', fontSize: '12px', opacity: 0.9 }}>
+            ⚡ Actions ({taskActions.length})
+          </div>
+          {taskActions.slice(0, 3).map((action, index) => (
+            <div key={action.id} style={{ 
+              marginBottom: index < Math.min(taskActions.length, 3) - 1 ? '4px' : '0',
+              opacity: 0.95
+            }}>
+              <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                Day {action.day}:
+              </div>
+              <div>
+                {action.details.length > 80 
+                  ? `${action.details.substring(0, 80)}...` 
+                  : action.details}
+              </div>
+            </div>
+          ))}
+          {taskActions.length > 3 && (
+            <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px', fontStyle: 'italic' }}>
+              +{taskActions.length - 3} more actions...
+            </div>
+          )}
         </div>
       )}
     </div>
