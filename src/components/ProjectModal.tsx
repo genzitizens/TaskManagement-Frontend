@@ -341,7 +341,14 @@ export default function ProjectModal({
             {/* Start date field - Only show when not importing or in edit mode */}
             {(mode === 'edit' || !form.isImport) && (
               <div className="field">
-                <label htmlFor="project-start-date-modal">Start date</label>
+                <label htmlFor="project-start-date-modal">
+                  Start date
+                  {mode === 'edit' && (
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 'normal', marginLeft: '0.5rem' }}>
+                      (cannot be changed after creation)
+                    </span>
+                  )}
+                </label>
                 <input
                   id="project-start-date-modal"
                   name="startDate"
@@ -354,7 +361,7 @@ export default function ProjectModal({
                     }))
                   }
                   required
-                  disabled={submitting}
+                  disabled={submitting || mode === 'edit'}
                 />
               </div>
             )}
