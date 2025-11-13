@@ -63,7 +63,7 @@ export async function updateAction(id: string, input: ActionUpdateInput): Promis
   
   try {
     const result = await apiRequest<ActionRes>(`/api/actions/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(input)
     });
     console.log('updateAction API: Success response:', result);

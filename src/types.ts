@@ -136,4 +136,5 @@ export interface ActionCreateInput {
 
 export interface ActionUpdateInput {
   details: string;
+  day: number;
 }

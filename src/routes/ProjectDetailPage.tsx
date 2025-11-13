@@ -676,7 +676,10 @@ export default function ProjectDetailPage() {
       const { updateAction } = await import('../api/actions');
       console.log('handleActionSave: Calling updateAction with ID:', actionToView.id);
       
-      const updatedAction = await updateAction(actionToView.id, { details });
+      const updatedAction = await updateAction(actionToView.id, { 
+        details, 
+        day: actionToView.day 
+      });
       console.log('handleActionSave: Update successful:', updatedAction);
       
       // Trigger refetch of actions
