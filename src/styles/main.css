@@ -243,6 +243,35 @@ button:disabled {
   font-size: 0.875rem;
 }
 
+/* Checkbox Styles */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-direction: row;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.checkbox-field input[type="checkbox"] {
+  width: auto;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.checkbox-field label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
 .list {
   display: grid;
   gap: 0.75rem;

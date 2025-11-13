@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { z } from 'zod';
 import type { ProjectCreateInput, ProjectRes } from '../types';
+import { createProject, importProject, listProjects } from '../api/projects';
 import DeleteProjectModal from './DeleteProjectModal';
 
 type ProjectModalMode = 'create' | 'edit';
@@ -29,12 +30,22 @@ type FormState = {
   name: string;
   description: string;
   startDate: string;
+  isImport: boolean;
+  sourceProjectId: string;
+  importTasks: boolean;
+  importNotes: boolean;
+  importTags: boolean;
 };
 
 const createInitialState = (): FormState => ({
   name: '',
   description: '',
   startDate: dayjs().format('YYYY-MM-DD'),
+  isImport: false,
+  sourceProjectId: '',
+  importTasks: true,
+  importNotes: true,
+  importTags: true,
 });
 
 const projectSchema = z.object({
@@ -76,6 +87,8 @@ export default function ProjectModal({
   const [formError, setFormError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [availableProjects, setAvailableProjects] = useState<ProjectRes[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
 
   useEffect(() => {
     if (isOpen && mode === 'edit' && project) {
@@ -88,6 +101,11 @@ export default function ProjectModal({
           : dayjs(project.createdAt, 'DD-MM-YYYY', true).isValid()
             ? dayjs(project.createdAt, 'DD-MM-YYYY', true).format('YYYY-MM-DD')
             : dayjs().format('YYYY-MM-DD'),
+        isImport: false,
+        sourceProjectId: '',
+        importTasks: true,
+        importNotes: true,
+        importTags: true,
       });
     } else if (isOpen && mode === 'create') {
       setForm(createInitialState());
@@ -107,16 +125,44 @@ export default function ProjectModal({
     project?.createdAt,
   ]);
 
+  // Load available projects for import when import is enabled
+  useEffect(() => {
+    if (isOpen && mode === 'create' && form.isImport) {
+      setLoadingProjects(true);
+      listProjects({ size: 100 })
+        .then((response) => {
+          setAvailableProjects(response.content);
+        })
+        .catch((error) => {
+          console.error('Failed to load projects:', error);
+          setFormError('Failed to load available projects');
+        })
+        .finally(() => {
+          setLoadingProjects(false);
+        });
+    }
+  }, [isOpen, mode, form.isImport]);
+
   const submitLabel = useMemo(() => {
     if (submitting) {
-      return mode === 'edit' ? 'Saving…' : 'Creating…';
+      if (mode === 'edit') return 'Saving…';
+      return form.isImport ? 'Importing…' : 'Creating…';
     }
-    return mode === 'edit' ? 'Save changes' : 'Create project';
-  }, [mode, submitting]);
+    if (mode === 'edit') return 'Save changes';
+    return form.isImport ? 'Import project' : 'Create project';
+  }, [mode, submitting, form.isImport]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+
+    // Validate import-specific fields if import is enabled
+    if (mode === 'create' && form.isImport) {
+      if (!form.sourceProjectId) {
+        setFormError('Please select a project to import from');
+        return;
+      }
+    }
 
     const result = projectSchema.safeParse({
       name: form.name.trim(),
@@ -130,14 +176,26 @@ export default function ProjectModal({
       return;
     }
 
-    const payload: ProjectCreateInput = {
-      ...result.data,
-      startDate: dayjs(result.data.startDate).format(API_START_DATE_FORMAT),
-      title: result.data.name,
-    };
-
     try {
-      await onSubmit(payload);
+      if (mode === 'create' && form.isImport) {
+        // Handle import
+        await importProject({
+          sourceProjectId: form.sourceProjectId,
+          newProjectName: result.data.name,
+          description: result.data.description,
+          importTasks: form.importTasks,
+          importNotes: form.importNotes,
+          importTags: form.importTags,
+        });
+      } else {
+        // Handle regular create/edit
+        const payload: ProjectCreateInput = {
+          ...result.data,
+          startDate: dayjs(result.data.startDate).format(API_START_DATE_FORMAT),
+          title: result.data.name,
+        };
+        await onSubmit(payload);
+      }
       onClose();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : 'Failed to save project');
@@ -282,6 +340,113 @@ export default function ProjectModal({
                 disabled={submitting}
               />
             </div>
+            
+            {/* Import Section - Only show for create mode */}
+            {mode === 'create' && (
+              <div className="field">
+                <div className="checkbox-field">
+                  <input
+                    id="project-import-toggle"
+                    type="checkbox"
+                    checked={form.isImport}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        isImport: event.target.checked,
+                        sourceProjectId: event.target.checked ? prev.sourceProjectId : '',
+                        importTasks: event.target.checked ? prev.importTasks : true,
+                        importNotes: event.target.checked ? prev.importNotes : true,
+                        importTags: event.target.checked ? prev.importTags : true,
+                      }))
+                    }
+                    disabled={submitting}
+                  />
+                  <label htmlFor="project-import-toggle">Import from existing project</label>
+                </div>
+              </div>
+            )}
+
+            {/* Import Options - Only show when import is enabled */}
+            {mode === 'create' && form.isImport && (
+              <>
+                <div className="field">
+                  <label htmlFor="source-project-select">Source Project</label>
+                  <select
+                    id="source-project-select"
+                    value={form.sourceProjectId}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        sourceProjectId: event.target.value,
+                      }))
+                    }
+                    required
+                    disabled={submitting || loadingProjects}
+                  >
+                    <option value="">
+                      {loadingProjects ? 'Loading projects...' : 'Select a project to import from'}
+                    </option>
+                    {availableProjects.map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label>Import Options</label>
+                  <div className="checkbox-group">
+                    <div className="checkbox-field">
+                      <input
+                        id="import-tasks"
+                        type="checkbox"
+                        checked={form.importTasks}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            importTasks: event.target.checked,
+                          }))
+                        }
+                        disabled={submitting}
+                      />
+                      <label htmlFor="import-tasks">Import Tasks</label>
+                    </div>
+                    <div className="checkbox-field">
+                      <input
+                        id="import-notes"
+                        type="checkbox"
+                        checked={form.importNotes}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            importNotes: event.target.checked,
+                          }))
+                        }
+                        disabled={submitting}
+                      />
+                      <label htmlFor="import-notes">Import Notes</label>
+                    </div>
+                    <div className="checkbox-field">
+                      <input
+                        id="import-tags"
+                        type="checkbox"
+                        checked={form.importTags}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            importTags: event.target.checked,
+                          }))
+                        }
+                        disabled={submitting}
+                      />
+                      <label htmlFor="import-tags">Import Tags</label>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             {formError ? <p className="error-message">{formError}</p> : null}
             <div className="modal-actions">
               {mode === 'edit' && onDelete ? (

@@ -30,3 +30,19 @@ export function deleteProject(projectId: string) {
 export function getProject(projectId: string) {
   return apiRequest<ProjectRes>(`/api/projects/${projectId}`);
 }
+
+export interface ImportProjectInput {
+  sourceProjectId: string;
+  newProjectName: string;
+  description?: string;
+  importTasks?: boolean;
+  importNotes?: boolean;
+  importTags?: boolean;
+}
+
+export function importProject(payload: ImportProjectInput) {
+  return apiRequest<ProjectRes>('/api/projects/import', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
