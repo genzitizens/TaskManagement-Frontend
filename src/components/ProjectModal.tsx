@@ -164,10 +164,16 @@ export default function ProjectModal({
       }
     }
 
-    const result = projectSchema.safeParse({
+    // Create conditional validation schema
+    const isImporting = mode === 'create' && form.isImport;
+    const validationSchema = isImporting 
+      ? projectSchema.omit({ startDate: true }) // Remove startDate requirement for imports
+      : projectSchema;
+
+    const result = validationSchema.safeParse({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
-      startDate: form.startDate,
+      ...(isImporting ? {} : { startDate: form.startDate }), // Only include startDate if not importing
     });
 
     if (!result.success) {
@@ -190,8 +196,9 @@ export default function ProjectModal({
       } else {
         // Handle regular create/edit
         const payload: ProjectCreateInput = {
-          ...result.data,
-          startDate: dayjs(result.data.startDate).format(API_START_DATE_FORMAT),
+          name: result.data.name,
+          description: result.data.description,
+          startDate: dayjs(form.startDate).format(API_START_DATE_FORMAT),
           title: result.data.name,
         };
         await onSubmit(payload);
@@ -323,23 +330,27 @@ export default function ProjectModal({
                 disabled={submitting}
               />
             </div>
-            <div className="field">
-              <label htmlFor="project-start-date-modal">Start date</label>
-              <input
-                id="project-start-date-modal"
-                name="startDate"
-                type="date"
-                value={form.startDate}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    startDate: event.target.value,
-                  }))
-                }
-                required
-                disabled={submitting}
-              />
-            </div>
+            
+            {/* Start date field - Only show when not importing or in edit mode */}
+            {(mode === 'edit' || !form.isImport) && (
+              <div className="field">
+                <label htmlFor="project-start-date-modal">Start date</label>
+                <input
+                  id="project-start-date-modal"
+                  name="startDate"
+                  type="date"
+                  value={form.startDate}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      startDate: event.target.value,
+                    }))
+                  }
+                  required
+                  disabled={submitting}
+                />
+              </div>
+            )}
             
             {/* Import Section - Only show for create mode */}
             {mode === 'create' && (
@@ -363,6 +374,11 @@ export default function ProjectModal({
                   />
                   <label htmlFor="project-import-toggle">Import from existing project</label>
                 </div>
+                {form.isImport && (
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                    The start date will be copied from the selected template project.
+                  </p>
+                )}
               </div>
             )}
 
