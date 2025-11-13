@@ -479,14 +479,22 @@ export default function ProjectDetailPage() {
   };
 
   const handleSubmitTag = async (input: TagCreateInput) => {
-    if (tagModalMode === 'edit' && tagForModal) {
-      await updateTagApi(tagForModal.id, input);
-      handleCloseTagModal();
-      return;
-    }
+    try {
+      if (tagModalMode === 'edit' && tagForModal) {
+        await updateTagApi(tagForModal.id, input);
+        showNotification(`✅ Tag "${input.title}" updated successfully!`, 'success');
+        handleCloseTagModal();
+        return;
+      }
 
-    await createTag(input);
-    handleCloseTagModal();
+      await createTag(input);
+      showNotification(`✅ Tag "${input.title}" created successfully!`, 'success');
+      handleCloseTagModal();
+    } catch (error) {
+      const action = tagModalMode === 'edit' ? 'update' : 'create';
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${action} tag`;
+      showNotification(`❌ ${errorMessage}`, 'error');
+    }
   };
 
   const handleEditTagRequest = (tagId: string) => {
@@ -525,9 +533,12 @@ export default function ProjectDetailPage() {
     setTagDeleteError(null);
     try {
       await deleteTagApi(tagToDelete.id);
+      showNotification(`✅ Tag "${tagToDelete.title}" deleted successfully!`, 'success');
       handleCloseDeleteTagModal();
     } catch (error) {
-      setTagDeleteError(error instanceof Error ? error.message : 'Failed to delete tag');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete tag';
+      setTagDeleteError(errorMessage);
+      showNotification(`❌ ${errorMessage}`, 'error');
     }
   };
 
@@ -565,23 +576,35 @@ export default function ProjectDetailPage() {
   };
 
   const handleCreateTask = async (input: TaskWithNoteInput) => {
-    await createTask(input);
+    try {
+      await createTask(input);
+      showNotification(`✅ Task "${input.task.title}" created successfully!`, 'success');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create task';
+      showNotification(`❌ ${errorMessage}`, 'error');
+    }
   };
 
   const handleUpdateTask = async (input: TaskWithNoteInput) => {
     if (!selectedTask) {
       return;
     }
-    await updateTask(selectedTask.id, input.task, input.noteAction);
-    
-    // Clear the cache for this task so it gets fresh data
-    setTaskNotes((prev) => {
-      const next = { ...prev };
-      delete next[selectedTask.id];
-      return next;
-    });
-    
-    handleCloseModal();
+    try {
+      await updateTask(selectedTask.id, input.task, input.noteAction);
+      
+      // Clear the cache for this task so it gets fresh data
+      setTaskNotes((prev) => {
+        const next = { ...prev };
+        delete next[selectedTask.id];
+        return next;
+      });
+      
+      showNotification(`✅ Task "${input.task.title}" updated successfully!`, 'success');
+      handleCloseModal();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update task';
+      showNotification(`❌ ${errorMessage}`, 'error');
+    }
   };
 
   const handleDeleteTaskConfirm = async () => {
@@ -591,9 +614,12 @@ export default function ProjectDetailPage() {
     setDeleteError(null);
     try {
       await deleteTask(selectedTask.id);
+      showNotification(`✅ Task "${selectedTask.title}" deleted successfully!`, 'success');
       handleCloseModal();
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : 'Failed to delete task');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete task';
+      setDeleteError(errorMessage);
+      showNotification(`❌ ${errorMessage}`, 'error');
     }
   };
 
@@ -1183,7 +1209,7 @@ export default function ProjectDetailPage() {
         onDelete={handleActionDelete}
       />
       
-      {/* Testing Notification */}
+      {/* Global Notification System */}
       {notification && (
         <div
           style={{

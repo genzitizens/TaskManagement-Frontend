@@ -61,7 +61,7 @@ const projectSchema = z.object({
     .string()
     .min(1, 'Start date is required')
     .refine((value) => dayjs(value, 'YYYY-MM-DD', true).isValid(), {
-      message: 'Provide a valid start date',
+      message: 'Please provide a valid start date (YYYY-MM-DD format)',
     }),
 });
 
@@ -88,6 +88,7 @@ export default function ProjectModal({
 }: ProjectModalProps) {
   const [form, setForm] = useState<FormState>(() => createInitialState());
   const [formError, setFormError] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [availableProjects, setAvailableProjects] = useState<ProjectRes[]>([]);
@@ -129,6 +130,17 @@ export default function ProjectModal({
     project?.createdAt,
   ]);
 
+  // Date validation helper
+  const handleDateChange = (value: string) => {
+    setForm((prev) => ({ ...prev, startDate: value }));
+    
+    if (value && !dayjs(value, 'YYYY-MM-DD', true).isValid()) {
+      setDateError('Please provide a valid start date');
+    } else {
+      setDateError(null);
+    }
+  };
+
   // Load available projects for import when import is enabled
   useEffect(() => {
     if (isOpen && mode === 'create' && form.isImport) {
@@ -159,6 +171,12 @@ export default function ProjectModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+
+    // Check for real-time date validation errors
+    if (dateError) {
+      setFormError('Please fix the date validation error before submitting');
+      return;
+    }
 
     // Validate import-specific fields if import is enabled
     if (mode === 'create' && form.isImport) {
@@ -356,15 +374,18 @@ export default function ProjectModal({
                   name="startDate"
                   type="date"
                   value={form.startDate}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      startDate: event.target.value,
-                    }))
-                  }
+                  onChange={(event) => handleDateChange(event.target.value)}
                   required
                   disabled={submitting || mode === 'edit'}
+                  style={{
+                    borderColor: dateError ? '#dc2626' : undefined,
+                  }}
                 />
+                {dateError && (
+                  <div style={{ color: '#dc2626', fontSize: '14px', marginTop: '4px' }}>
+                    {dateError}
+                  </div>
+                )}
               </div>
             )}
             

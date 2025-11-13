@@ -1,10 +1,12 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import { z } from 'zod';
 import type { ProjectRes, TagCreateInput, TagRes } from '../types';
 
 dayjs.extend(customParseFormat);
+dayjs.extend(isSameOrAfter);
 
 const API_START_DATE_FORMAT = 'DD-MM-YYYY';
 
@@ -31,9 +33,29 @@ const tagSchema = z.object({
     .string()
     .max(10000, 'Description must be 10,000 characters or fewer')
     .optional(),
-  startAt: z.string().min(1, 'Start date is required'),
-  endAt: z.string().min(1, 'End date is required'),
+  startAt: z
+    .string()
+    .min(1, 'Start date is required')
+    .refine((value) => dayjs(value, 'YYYY-MM-DD', true).isValid(), {
+      message: 'Please provide a valid start date (YYYY-MM-DD format)',
+    }),
+  endAt: z
+    .string()
+    .min(1, 'End date is required')
+    .refine((value) => dayjs(value, 'YYYY-MM-DD', true).isValid(), {
+      message: 'Please provide a valid end date (YYYY-MM-DD format)',
+    }),
   color: z.string().optional(),
+}).refine((data) => {
+  const startDate = dayjs(data.startAt, 'YYYY-MM-DD', true);
+  const endDate = dayjs(data.endAt, 'YYYY-MM-DD', true);
+  if (startDate.isValid() && endDate.isValid()) {
+    return endDate.isSameOrAfter(startDate);
+  }
+  return true; // Let individual field validation handle invalid dates
+}, {
+  message: 'End date must be on or after the start date',
+  path: ['endAt'], // Show error on end date field
 });
 
 interface FormState {
@@ -95,6 +117,7 @@ export default function TagModal({
 }: TagModalProps) {
   const [form, setForm] = useState<FormState>(() => createInitialState(defaultProjectId, tag));
   const [formError, setFormError] = useState<string | null>(null);
+  const [dateErrors, setDateErrors] = useState<{startAt?: string | null; endAt?: string | null}>({});
 
   useEffect(() => {
     if (!isOpen) {
@@ -104,6 +127,62 @@ export default function TagModal({
     setForm(createInitialState(defaultProjectId, tag));
     setFormError(null);
   }, [defaultProjectId, isOpen, mode, tag]);
+
+  // Date validation helpers
+  const validateDate = (dateStr: string, fieldName: 'startAt' | 'endAt') => {
+    if (!dateStr) {
+      return `${fieldName === 'startAt' ? 'Start' : 'End'} date is required`;
+    }
+    
+    const date = dayjs(dateStr, 'YYYY-MM-DD', true);
+    if (!date.isValid()) {
+      return `Please provide a valid ${fieldName === 'startAt' ? 'start' : 'end'} date`;
+    }
+    
+    return null;
+  };
+
+  const validateDateRange = (startAt: string, endAt: string) => {
+    const startDate = dayjs(startAt, 'YYYY-MM-DD', true);
+    const endDate = dayjs(endAt, 'YYYY-MM-DD', true);
+    
+    if (startDate.isValid() && endDate.isValid() && endDate.isBefore(startDate)) {
+      return 'End date must be on or after the start date';
+    }
+    
+    return null;
+  };
+
+  // Real-time date validation
+  const handleDateChange = (field: 'startAt' | 'endAt', value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    
+    // Validate the specific field
+    const fieldError = validateDate(value, field);
+    
+    // Validate date range if both dates are present
+    const otherField = field === 'startAt' ? 'endAt' : 'startAt';
+    const otherValue = field === 'startAt' ? form.endAt : form.startAt;
+    const rangeError = value && otherValue ? validateDateRange(
+      field === 'startAt' ? value : otherValue,
+      field === 'endAt' ? value : otherValue
+    ) : null;
+    
+    setDateErrors((prev) => {
+      const newErrors = { ...prev };
+      newErrors[field] = fieldError;
+      
+      // Handle range validation
+      if (rangeError) {
+        newErrors.endAt = rangeError;
+      } else if (field === 'endAt' && !fieldError) {
+        // Clear range error if end date is now valid and no field error
+        newErrors.endAt = fieldError;
+      }
+      
+      return newErrors;
+    });
+  };
 
   const submitLabel = useMemo(
     () => {
@@ -152,6 +231,13 @@ export default function TagModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setFormError(null);
+
+    // Check for real-time date validation errors
+    const hasDateErrors = Object.values(dateErrors).some(error => error);
+    if (hasDateErrors) {
+      setFormError('Please fix the date validation errors before submitting');
+      return;
+    }
 
     const result = tagSchema.safeParse({
       projectId: form.projectId,
@@ -316,15 +402,18 @@ export default function TagModal({
               name="startAt"
               type="date"
               value={form.startAt}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  startAt: event.target.value,
-                }))
-              }
+              onChange={(event) => handleDateChange('startAt', event.target.value)}
               required
               disabled={submitting}
+              style={{
+                borderColor: dateErrors.startAt ? '#dc2626' : undefined,
+              }}
             />
+            {dateErrors.startAt && (
+              <div style={{ color: '#dc2626', fontSize: '14px', marginTop: '4px' }}>
+                {dateErrors.startAt}
+              </div>
+            )}
           </div>
           <div className="field">
             <label htmlFor="tag-end-modal">End</label>
@@ -333,15 +422,18 @@ export default function TagModal({
               name="endAt"
               type="date"
               value={form.endAt}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  endAt: event.target.value,
-                }))
-              }
+              onChange={(event) => handleDateChange('endAt', event.target.value)}
               required
               disabled={submitting}
+              style={{
+                borderColor: dateErrors.endAt ? '#dc2626' : undefined,
+              }}
             />
+            {dateErrors.endAt && (
+              <div style={{ color: '#dc2626', fontSize: '14px', marginTop: '4px' }}>
+                {dateErrors.endAt}
+              </div>
+            )}
           </div>
           <div className="field">
             <label htmlFor="tag-color-modal">Color</label>

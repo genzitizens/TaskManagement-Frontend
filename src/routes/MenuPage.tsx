@@ -32,6 +32,7 @@ export default function MenuPage() {
   const [deleteTarget, setDeleteTarget] = useState<ProjectRes | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null);
 
   const openCreateModal = () => {
     setActiveProject(null);
@@ -60,23 +61,43 @@ export default function MenuPage() {
     setDeleteError(null);
   };
 
+  // Notification helper
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000); // Auto-hide after 5 seconds
+  };
+
   const handleSubmit = async (input: ProjectCreateInput) => {
-    if (activeProject) {
-      await updateProject({
-        id: activeProject.id,
-        input: {
-          ...input,
-          updatedAt: activeProject.updatedAt,
-        },
-      });
-    } else {
-      await createProject(input);
+    try {
+      if (activeProject) {
+        await updateProject({
+          id: activeProject.id,
+          input: {
+            ...input,
+            updatedAt: activeProject.updatedAt,
+          },
+        });
+        showNotification(`✅ Project "${input.name}" updated successfully!`, 'success');
+      } else {
+        await createProject(input);
+        showNotification(`✅ Project "${input.name}" created successfully!`, 'success');
+      }
+    } catch (error) {
+      const action = activeProject ? 'update' : 'create';
+      const errorMessage = error instanceof Error ? error.message : `Failed to ${action} project`;
+      showNotification(`❌ ${errorMessage}`, 'error');
     }
   };
 
   const handleDelete = async (project: ProjectRes) => {
-    await deleteProject(project.id);
-    closeModal();
+    try {
+      await deleteProject(project.id);
+      showNotification(`✅ Project "${project.name}" deleted successfully!`, 'success');
+      closeModal();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete project';
+      showNotification(`❌ ${errorMessage}`, 'error');
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -87,9 +108,12 @@ export default function MenuPage() {
     try {
       setDeleteError(null);
       await deleteProject(deleteTarget.id);
+      showNotification(`✅ Project "${deleteTarget.name}" deleted successfully!`, 'success');
       closeDeleteModal();
     } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : 'Failed to delete project');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete project';
+      setDeleteError(errorMessage);
+      showNotification(`❌ ${errorMessage}`, 'error');
     }
   };
 
@@ -464,6 +488,32 @@ export default function MenuPage() {
         onCancel={closeDeleteModal}
         onConfirm={handleDeleteConfirm}
       />
+
+      {/* Global Notification System */}
+      {notification && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            color: 'white',
+            fontWeight: '600',
+            maxWidth: '400px',
+            zIndex: 9999,
+            backgroundColor: notification.type === 'success' ? '#16a34a' : '#dc2626',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            cursor: 'pointer',
+          }}
+          onClick={() => setNotification(null)}
+        >
+          {notification.message}
+          <div style={{ fontSize: '12px', marginTop: '4px', opacity: 0.9 }}>
+            Click to dismiss
+          </div>
+        </div>
+      )}
     </div>
   );
 }
