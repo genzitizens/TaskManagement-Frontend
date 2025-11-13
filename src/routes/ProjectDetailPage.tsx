@@ -663,11 +663,22 @@ export default function ProjectDetailPage() {
   };
 
   const handleActionSave = async (details: string) => {
-    if (!actionToView) return;
+    if (!actionToView) {
+      console.error('handleActionSave: No action to view');
+      showNotification('❌ No action selected for update', 'error');
+      return;
+    }
+    
+    console.log('handleActionSave: Starting update for action:', actionToView);
+    console.log('handleActionSave: New details:', details);
     
     try {
       const { updateAction } = await import('../api/actions');
-      await updateAction(actionToView.id, { details });
+      console.log('handleActionSave: Calling updateAction with ID:', actionToView.id);
+      
+      const updatedAction = await updateAction(actionToView.id, { details });
+      console.log('handleActionSave: Update successful:', updatedAction);
+      
       // Trigger refetch of actions
       queryClient.invalidateQueries({ queryKey: ['actions'] });
       
@@ -677,8 +688,22 @@ export default function ProjectDetailPage() {
       
       showNotification(`✅ Action updated successfully!`, 'success');
     } catch (error) {
-      console.error('Failed to update action:', error);
-      showNotification(`❌ Failed to update action: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      console.error('handleActionSave: Update failed:', error);
+      
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        if (error.message.includes('CORS') || error.message.includes('Access-Control-Allow-Origin')) {
+          errorMessage = 'CORS error - backend needs to allow requests from this domain';
+        } else if (error.message.includes('fetch')) {
+          errorMessage = 'Network error - check if backend is running';
+        } else if (error.message.includes('404')) {
+          errorMessage = 'Action not found - may have been deleted';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      showNotification(`❌ Failed to update action: ${errorMessage}`, 'error');
       throw error;
     }
   };

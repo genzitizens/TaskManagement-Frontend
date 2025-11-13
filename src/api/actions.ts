@@ -57,10 +57,31 @@ export async function createAction(input: ActionCreateInput): Promise<ActionRes>
 }
 
 export async function updateAction(id: string, input: ActionUpdateInput): Promise<ActionRes> {
-  return apiRequest<ActionRes>(`/api/actions/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(input)
-  });
+  console.log('updateAction API: Updating action with ID:', id);
+  console.log('updateAction API: Update data:', input);
+  console.log('updateAction API: Request body:', JSON.stringify(input));
+  
+  try {
+    const result = await apiRequest<ActionRes>(`/api/actions/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(input)
+    });
+    console.log('updateAction API: Success response:', result);
+    return result;
+  } catch (error) {
+    console.error('updateAction API: Request failed:', error);
+    
+    // Add more specific error details for debugging
+    if (error instanceof Error) {
+      console.error('updateAction Error name:', error.name);
+      console.error('updateAction Error message:', error.message);
+      if (error.message.includes('fetch')) {
+        console.error('updateAction: This is a network/fetch error - likely backend is not running or wrong URL');
+      }
+    }
+    
+    throw error;
+  }
 }
 
 export async function deleteAction(id: string): Promise<void> {
