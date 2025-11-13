@@ -670,8 +670,15 @@ export default function ProjectDetailPage() {
       await updateAction(actionToView.id, { details });
       // Trigger refetch of actions
       queryClient.invalidateQueries({ queryKey: ['actions'] });
+      
+      // Update the local action data and exit edit mode
+      setActionToView({ ...actionToView, details });
+      setIsActionEditMode(false);
+      
+      showNotification(`✅ Action updated successfully!`, 'success');
     } catch (error) {
       console.error('Failed to update action:', error);
+      showNotification(`❌ Failed to update action: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
       throw error;
     }
   };
@@ -1019,10 +1026,15 @@ export default function ProjectDetailPage() {
                                   aria-hidden="true"
                                   style={{ 
                                     position: 'absolute',
-                                    top: '2px',
-                                    left: '2px',
-                                    width: '12px',
-                                    height: '12px',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    width: 'calc(100% - 6px)',
+                                    height: 'calc(100% - 6px)',
+                                    maxWidth: '32px',
+                                    maxHeight: '32px',
+                                    minWidth: '20px',
+                                    minHeight: '20px',
                                     color: '#1f2937',
                                     pointerEvents: 'none'
                                   }}
@@ -1606,6 +1618,7 @@ interface ActionViewModalProps {
 function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, onDelete }: ActionViewModalProps) {
   const [editDetails, setEditDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Update edit details when action changes
   useEffect(() => {
@@ -1614,16 +1627,25 @@ function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, 
     }
   }, [action]);
 
+  // Clear error when entering edit mode
+  useEffect(() => {
+    if (isEditMode) {
+      setSaveError(null);
+    }
+  }, [isEditMode]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editDetails.trim() || !action) return;
     
     setIsSubmitting(true);
+    setSaveError(null);
     try {
       await onSave(editDetails.trim());
-      onClose();
+      // Success - parent component should handle exiting edit mode
     } catch (error) {
       console.error('Failed to update action:', error);
+      setSaveError(error instanceof Error ? error.message : 'Failed to save action');
     } finally {
       setIsSubmitting(false);
     }
@@ -1692,11 +1714,25 @@ function ActionViewModal({ isOpen, action, isEditMode, onClose, onEdit, onSave, 
               />
             </div>
             
+            {saveError && (
+              <div className="error-message" style={{ marginTop: '1rem' }}>
+                {saveError}
+              </div>
+            )}
+            
             <div className="modal-actions">
               <button type="button" onClick={handleClose} disabled={isSubmitting}>
                 Cancel
               </button>
-              <button type="submit" className="button-secondary" disabled={isSubmitting || !editDetails.trim()}>
+              <button 
+                type="submit" 
+                style={{
+                  backgroundColor: 'white',
+                  color: '#1f2937',
+                  border: '1px solid #d1d5db'
+                }}
+                disabled={isSubmitting || !editDetails.trim()}
+              >
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
